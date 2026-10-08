@@ -1,6 +1,6 @@
 {
   "name": "@diariohilario/xhatin-motor",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Motor de Xhatín sin framework: HilarAvatar y el motor de escena (conversación → viñetas). Lo comparten xhatin (web) y diario-hilario-mobile.",
   "private": true,
   "type": "module",
@@ -38,7 +38,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/copiar-estaticos.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/copiar-estaticos.mjs",
+    "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm test && npm run build",

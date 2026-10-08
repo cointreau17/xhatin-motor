@@ -46,6 +46,55 @@ export function conFuentes<T>(otras: { dialogo: string; rotulo: string } | undef
   }
 }
 
+/**
+ * Cuánto se agranda la letra de los globos respecto a la de siempre (1). La
+ * fija quien compone (`OpcionesComposicion.escalaLetra`) para viñetas que se
+ * ven pequeñas, como las dos por fila del móvil. La cámara no la usa: encuadra
+ * como con la letra de siempre (ver camara.ts).
+ */
+let escalaLetra = 1;
+
+/**
+ * Ejecuta `fn` con otra escala de letra y deja la de antes al terminar.
+ * `undefined` deja la que haya; `1` vuelve a la de siempre.
+ */
+export function conEscalaLetra<T>(escala: number | undefined, fn: () => T): T {
+  if (escala === undefined || escala === escalaLetra) return fn();
+  const antes = escalaLetra;
+  escalaLetra = escala;
+  try {
+    return fn();
+  } finally {
+    escalaLetra = antes;
+  }
+}
+
+/**
+ * Cómo se reparten los globos en la viñeta, aparte de la letra. Lo fija quien
+ * compone (`OpcionesComposicion`):
+ * - `separacion`: multiplica los huecos entre globos (1 = los de siempre).
+ * - `desborde`: unidades que un globo puede salirse por encima del marco,
+ *   como en los cómics cuando el texto no cabe. 0 = nunca se sale.
+ */
+let disposicion = { separacion: 1, desborde: 0 };
+
+/** Ejecuta `fn` con otra disposición y deja la de antes al terminar. */
+export function conDisposicion<T>(otra: { separacion?: number; desborde?: number }, fn: () => T): T {
+  if (otra.separacion === undefined && otra.desborde === undefined) return fn();
+  const antes = disposicion;
+  disposicion = { separacion: otra.separacion ?? antes.separacion, desborde: otra.desborde ?? antes.desborde };
+  try {
+    return fn();
+  } finally {
+    disposicion = antes;
+  }
+}
+
+/** Hueco entre dos globos de la misma fila. */
+const hueco = () => 16 * disposicion.separacion;
+/** Hueco entre una fila de globos y la siguiente. */
+const espacioFilas = () => ESPACIO_FILAS * disposicion.separacion;
+
 /** Mide el ancho de un texto. En el navegador se inyecta uno exacto (canvas). */
 export type MedirTexto = (texto: string, tam: number, negrita: boolean, fuente: string) => number;
 
@@ -101,7 +150,18 @@ interface Estilo {
   padY: number;
 }
 
+/**
+ * El estilo con la escala de letra vigente. Crecen la letra y el relleno a la
+ * par, para que el globo conserve su aire; las onomatopeyas no, que ya van
+ * enormes y son dibujo más que texto.
+ */
 function estiloDe(tipo: TipoGlobo, anchoVineta: number, soloEmoji: boolean, varios = false, largo = false): Estilo {
+  const e = estiloBase(tipo, anchoVineta, soloEmoji, varios, largo);
+  if (escalaLetra === 1 || tipo === 'sonido') return e;
+  return { ...e, tam: Math.round(e.tam * escalaLetra), padX: Math.round(e.padX * escalaLetra), padY: Math.round(e.padY * escalaLetra) };
+}
+
+function estiloBase(tipo: TipoGlobo, anchoVineta: number, soloEmoji: boolean, varios = false, largo = false): Estilo {
   // Con varios globos se estrechan, para que quepan dos por fila. Un
   // párrafo largo, en cambio, se ensancha y baja un punto de letra: en un
   // chat el texto se tiene que poder leer entero.
@@ -233,7 +293,7 @@ function empaquetar(globos: readonly Globo[], anchoV: number, nombres: boolean, 
     const m = medirGlobo(g, anchoV, escala, conNombre, varios);
     const xH = xDe(g.autorId);
     const anterior = fila?.globos[fila.globos.length - 1];
-    const cabe = !!fila && anchoFila + m.ancho + 36 <= anchoV;
+    const cabe = !!fila && anchoFila + m.ancho + 2 * MARGEN + hueco() <= anchoV;
     const ordenado = !!anterior && xH >= anterior.xHablante + 1;
     const esNarracion = g.tipo === 'narracion' || anterior?.g.tipo === 'narracion';
     if (!fila || !cabe || !ordenado || esNarracion) {
@@ -243,7 +303,7 @@ function empaquetar(globos: readonly Globo[], anchoV: number, nombres: boolean, 
     }
     fila.globos.push({ g, m, xHablante: xH });
     fila.alto = Math.max(fila.alto, m.alto);
-    anchoFila += m.ancho + 16;
+    anchoFila += m.ancho + hueco();
   }
   return filas;
 }
@@ -267,7 +327,7 @@ export function alturaGlobos(
 ): number {
   const todos = conRotulo(globos, rotulo).filter((g) => g.tipo !== 'sonido');
   const filas = empaquetar(todos, anchoV, nombres, xDe);
-  return MARGEN + filas.reduce((s, f) => s + f.alto + ESPACIO_FILAS, 0) + 30;
+  return MARGEN + filas.reduce((s, f) => s + f.alto + espacioFilas(), 0) + 30;
 }
 
 function conRotulo(globos: readonly Globo[], rotulo?: string): Globo[] {
@@ -302,23 +362,33 @@ export function colocarGlobos(
   const todos = conRotulo(globos, opciones.rotulo);
   const enFilas = todos.filter((g) => g.tipo !== 'sonido');
 
-  // Si las filas no caben en la mitad alta, se reduce la letra.
+  // Si las filas no caben en la mitad alta (más lo que puedan salirse por
+  // arriba), se reduce la letra.
+  const altoDe = (fs: readonly Fila[]) => fs.reduce((s, f) => s + f.alto + espacioFilas(), MARGEN);
   let filas = empaquetar(enFilas, anchoV, opciones.nombres, xDe);
   for (const escala of [0.88, 0.78]) {
-    const alto = filas.reduce((s, f) => s + f.alto + ESPACIO_FILAS, MARGEN);
-    if (alto <= altoV * 0.66) break;
+    if (altoDe(filas) - disposicion.desborde <= altoV * 0.66) break;
     filas = empaquetar(enFilas, anchoV, opciones.nombres, xDe, escala);
   }
 
+  // Lo que los globos piden de más respecto al hueco que dejó la cámara (que
+  // encuadra con la letra de siempre) sube por encima del marco, hasta
+  // `desborde`: así la letra grande no hace bajar los globos sobre las caras.
+  let subida = 0;
+  if (disposicion.desborde > 0) {
+    const reservado = conEscalaLetra(1, () => altoDe(empaquetar(enFilas, anchoV, opciones.nombres, xDe)));
+    subida = Math.min(disposicion.desborde, Math.max(0, altoDe(filas) - reservado));
+  }
+
   const colocados: GloboColocado[] = [];
-  let y = MARGEN;
+  let y = MARGEN - subida;
   for (const fila of filas) {
     // Centrado sobre el hablante, empujando a la derecha para no solapar.
     const xs: number[] = [];
-    let derecha = MARGEN - 16;
+    let derecha = MARGEN - hueco();
     for (const { g, m, xHablante } of fila.globos) {
       const ideal = g.tipo === 'narracion' ? MARGEN : xHablante - m.ancho / 2;
-      const x = Math.max(ideal, derecha + 16, MARGEN);
+      const x = Math.max(ideal, derecha + hueco(), MARGEN);
       xs.push(x);
       derecha = x + m.ancho;
     }
@@ -326,10 +396,12 @@ export function colocarGlobos(
     if (exceso > 0) for (let i = 0; i < xs.length; i++) xs[i] = Math.max(MARGEN, xs[i]! - exceso);
     // Un poco de escalonado: el segundo globo de la fila, algo más bajo.
     fila.globos.forEach(({ g, m }, i) => {
-      const escalon = i > 0 && fila.globos.length > 1 ? Math.min(14, fila.alto - m.alto + 8) : 0;
+      // Baja como mucho hasta casi el hueco con la fila siguiente (8 con los
+      // huecos de siempre), para no pisarla.
+      const escalon = i > 0 && fila.globos.length > 1 ? Math.min(14, fila.alto - m.alto + espacioFilas() - 2) : 0;
       colocados.push(crearColocado(g, { x: xs[i]!, y: y + escalon, ancho: Math.min(m.ancho, anchoV - 2 * MARGEN), alto: m.alto }, m, obst, anchoV, altoV, opciones.nombres));
     });
-    y += fila.alto + ESPACIO_FILAS;
+    y += fila.alto + espacioFilas();
   }
 
   // Respaldo: los que tapan caras se recolocan por rejilla.
@@ -380,7 +452,13 @@ function buscarEnRejilla(
   const varios = true;
   let mejor: { caja: Caja; coste: number; medida: Medida } | null = null;
 
-  for (const escalaFuente of [1, 0.88, 0.78]) {
+  // Si no cabe, se prueba con letra más pequeña. Con la letra agrandada
+  // (escalaLetra) se baja más pasos, hasta el mismo mínimo de siempre: mejor
+  // un globo como el de la web que uno grande tapando una cara.
+  const minimo = 0.78 / escalaLetra;
+  const escalas = [1, 0.88, 0.78, 0.7, 0.62, 0.55].filter((s) => s >= minimo - 0.001);
+  if (escalas[escalas.length - 1]! > minimo + 0.001) escalas.push(minimo);
+  for (const escalaFuente of escalas) {
     const medida = medirGlobo(g, anchoV, escalaFuente, conNombre, varios);
     const w = Math.min(medida.ancho, anchoV - MARGEN * 2);
     const h = Math.min(medida.alto, altoV - MARGEN * 2);
@@ -391,7 +469,9 @@ function buscarEnRejilla(
     else ideal = { x: anchoV / 2, y: h / 2 + MARGEN };
     if (g.tipo === 'sonido' && hablante) ideal = { x: hablante.coronilla.x + (hablante.coronilla.x < anchoV / 2 ? 110 : -110), y: hablante.coronilla.y + 10 };
 
-    for (let y = MARGEN; y <= altoV - MARGEN - h; y += 10) {
+    // Puede subir por encima del marco hasta `desborde`, pagando por ello:
+    // solo se sale si dentro no hay sitio sin tapar una cara.
+    for (let y = MARGEN - disposicion.desborde; y <= altoV - MARGEN - h; y += 10) {
       for (let x = MARGEN; x <= anchoV - MARGEN - w; x += 10) {
         const c = { x, y, ancho: w, alto: h };
         let coste = 0;
@@ -400,10 +480,11 @@ function buscarEnRejilla(
           if (s) coste += 3000 + s * (cara.id === g.autorId ? 220 : 180);
         }
         for (const otro of ocupados) {
-          const s = solapa(crecer(c, 6), otro.caja);
+          const s = solapa(crecer(c, 6 * disposicion.separacion), otro.caja);
           if (s) coste += s * 80 + 20000;
         }
         for (const cuerpo of obst.cuerpos) coste += solapa(c, cuerpo) * 0.35;
+        if (y < MARGEN) coste += (MARGEN - y) * 40;
         coste += Math.abs(x + w / 2 - ideal.x) * 1.4 + Math.abs(y + h / 2 - ideal.y) * 0.7 + y * 0.6;
         // Orden de lectura respecto a los globos anteriores.
         for (const previo of anteriores) {
@@ -415,8 +496,11 @@ function buscarEnRejilla(
         if (!mejor || coste < mejor.coste) mejor = { caja: c, coste, medida };
       }
     }
+    // Se para en cuanto el mejor sitio ni tapa una cara ni pisa otro globo;
+    // si no, se prueba con la letra siguiente, más pequeña.
     const tapa = mejor ? obst.caras.reduce((s, f) => s + solapa(mejor!.caja, f.caja), 0) : 0;
-    if (mejor && tapa < mejor.caja.ancho * mejor.caja.alto * 0.04) break;
+    const pisa = mejor ? ocupados.some((o) => solapa(mejor!.caja, o.caja) > 0) : false;
+    if (mejor && tapa < mejor.caja.ancho * mejor.caja.alto * 0.04 && !pisa) break;
   }
   return mejor ? crearColocado(g, mejor.caja, mejor.medida, obst, anchoV, altoV, nombres) : null;
 }

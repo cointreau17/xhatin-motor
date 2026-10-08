@@ -463,6 +463,56 @@ describe('Composición', () => {
     }
   });
 
+  it('con desborde los globos solo se salen por arriba y lo justo, sin pisarse ni tapar caras', () => {
+    const DESBORDE = 60;
+    const movil = { animar: false, escalaLetra: 1.3, separacion: 0.5, desborde: DESBORDE };
+    let fuera = 0;
+    for (const { conv, v, d } of todas) {
+      const r = componerVineta(v, d.catalogo, movil);
+      const caras = r.layout.personajes.map((c) => aVineta(r.encuadre, c.cara));
+      r.globos.forEach((g, i) => {
+        const c = g.caja;
+        expect(c.x, `${conv}/${v.id}`).toBeGreaterThanOrEqual(0);
+        expect(c.y, `${conv}/${v.id}`).toBeGreaterThanOrEqual(-DESBORDE);
+        expect(c.x + c.ancho, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.ancho + 0.5);
+        expect(c.y + c.alto, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.alto + 0.5);
+        for (const otro of r.globos.slice(i + 1)) expect(solapa(c, otro.caja), `${conv}/${v.id} globos`).toBe(0);
+        const tapado = caras.reduce((s, f) => s + solapa(c, f), 0);
+        expect(tapado / (c.ancho * c.alto), `${conv}/${v.id} tapa una cara: "${g.globo.texto}"`).toBeLessThan(0.08);
+        if (c.y < 0) fuera++;
+      });
+      // Los valores por defecto son los de siempre.
+      expect(componerVineta(v, d.catalogo, { animar: false, separacion: 1, desborde: 0 }).svg).toBe(
+        componerVineta(v, d.catalogo, { animar: false }).svg,
+      );
+    }
+    expect(fuera).toBeGreaterThan(0);
+  });
+
+  it('con escalaLetra la letra crece y los globos siguen dentro, sin pisarse ni tapar caras', () => {
+    let mayores = 0;
+    for (const { conv, v, d } of todas) {
+      const normal = componerVineta(v, d.catalogo, { animar: false });
+      const r = componerVineta(v, d.catalogo, { animar: false, escalaLetra: 1.3 });
+      const caras = r.layout.personajes.map((c) => aVineta(r.encuadre, c.cara));
+      r.globos.forEach((g, i) => {
+        const c = g.caja;
+        expect(c.x, `${conv}/${v.id}`).toBeGreaterThanOrEqual(0);
+        expect(c.y, `${conv}/${v.id}`).toBeGreaterThanOrEqual(0);
+        expect(c.x + c.ancho, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.ancho + 0.5);
+        expect(c.y + c.alto, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.alto + 0.5);
+        for (const otro of r.globos.slice(i + 1)) expect(solapa(c, otro.caja), `${conv}/${v.id} globos`).toBe(0);
+        const tapado = caras.reduce((s, f) => s + solapa(c, f), 0);
+        expect(tapado / (c.ancho * c.alto), `${conv}/${v.id} tapa una cara: "${g.globo.texto}"`).toBeLessThan(0.08);
+        const antes = normal.globos.find((x) => x.globo.id === g.globo.id);
+        if (antes && g.estilo.tam > antes.estilo.tam) mayores++;
+      });
+      // La escala no se queda puesta para la viñeta siguiente.
+      expect(componerVineta(v, d.catalogo, { animar: false }).svg).toBe(normal.svg);
+    }
+    expect(mayores).toBeGreaterThan(0);
+  });
+
   it('dos viñetas con el mismo id en conversaciones distintas no comparten ids de SVG', () => {
     const a = montar('discusion').vinetas[1]!;
     const b = montar('salida').vinetas[1]!;

@@ -32,6 +32,12 @@ const { vineta } = director.procesar(mensaje);
 contenedor.innerHTML = componerVineta(vineta, CATALOGO).svg;
 ```
 
+`componerVineta` admite, además de `novedades`, `animar` y `estilo`, tres
+opciones para viñetas pequeñas (las usa la app móvil, con dos por fila):
+`escalaLetra` agranda la letra de los globos, `separacion` los junta y
+`desborde` les deja salirse por encima del marco. Con `desborde`, la viñeta
+tiene que llevar la clase `dh-vineta--desborda` para no recortarlos.
+
 El motor de escena va como espacio de nombres en la raíz porque comparte
 nombres con HilarAvatar: el `normalizar` del léxico no es el del avatar.
 
@@ -88,6 +94,7 @@ día lo bloquea, se aprueba con
 
 ```bash
 npm run build       # dist/: tsc + copia de HilarAvatar (JS) y vineta.css
+npm run clean       # borra dist/ (build no lo hace, para no dejar sin motor a quien lo usa)
 npm run typecheck
 npm test            # tests del motor de escena (vitest)
 npm run check       # las tres cosas

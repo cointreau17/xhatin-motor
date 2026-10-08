@@ -26,7 +26,7 @@ import type { DefEscenario } from '../catalogo/tipos.js';
 import { dibujarPersonaje, estiloColores } from '../personaje/personaje.js';
 import { configDe } from '../personaje/cabeza.js';
 import { encuadrar, matrizDe, aVineta, type Encuadre } from './camara.js';
-import { colocarGlobos, conFuentes, dibujarGlobo, type GloboColocado, type Obstaculos } from './globos.js';
+import { colocarGlobos, conDisposicion, conEscalaLetra, conFuentes, dibujarGlobo, type GloboColocado, type Obstaculos } from './globos.js';
 import { aMundo, calcularLayout, manoDelProp, type Colocacion, type ColocacionProp, type Layout } from './layout.js';
 import { colocarFigura, elegirFigura, type FiguraColocada } from '../estilos/figuras.js';
 import type { UsoEstilo } from '../estilos/tipos.js';
@@ -47,6 +47,22 @@ export interface OpcionesComposicion {
    * estilos/tipos.ts.
    */
   estilo?: UsoEstilo;
+  /**
+   * Agranda la letra de los globos (1 = la de siempre). Para viñetas que se
+   * ven pequeñas, como las dos por fila del móvil. La cámara encuadra como
+   * con la letra de siempre, así que los personajes no encogen: los globos
+   * se acomodan (y, con `desborde`, suben por encima del marco).
+   */
+  escalaLetra?: number;
+  /** Multiplica los huecos entre globos (1 = los de siempre): menos, más pegados. */
+  separacion?: number;
+  /**
+   * Unidades de viñeta que un globo puede salirse por encima del marco, como
+   * en los cómics cuando el texto no cabe (0 = nunca, lo de siempre). Para
+   * que se vea, quien pinta la viñeta tiene que dejar de recortarla: clase
+   * `dh-vineta--desborda` de vineta.css.
+   */
+  desborde?: number;
 }
 
 export interface Composicion {
@@ -246,7 +262,10 @@ function efectosDe(c: Colocacion, v: Vineta, catalogo: Catalogo, op: OpcionesCom
 /* -------------------------------------------------------------- viñeta --- */
 
 export function componerVineta(v: Vineta, catalogo: Catalogo, op: OpcionesComposicion = {}): Composicion {
-  return conFuentes(op.estilo?.estilo.fuentes, () => componer(v, catalogo, op));
+  const disposicion = { separacion: op.separacion, desborde: op.desborde };
+  return conFuentes(op.estilo?.estilo.fuentes, () =>
+    conEscalaLetra(op.escalaLetra, () => conDisposicion(disposicion, () => componer(v, catalogo, op))),
+  );
 }
 
 function componer(v: Vineta, catalogo: Catalogo, op: OpcionesComposicion): Composicion {
@@ -339,7 +358,7 @@ function componer(v: Vineta, catalogo: Catalogo, op: OpcionesComposicion): Compo
 
   const descripcion = describir(v, catalogo);
   let svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.ancho} ${layout.alto}" class="dh-vineta-svg" role="img" aria-label="${esc(descripcion)}" style="--dh-tinta:#1B1714;--dh-papel:#F2E9D8;--dh-acento:#CF3A2B;--dh-boca:#A8402F;--dh-cristal:#8FB8C4">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.ancho} ${layout.alto}" class="dh-vineta-svg" role="img" aria-label="${esc(descripcion)}" overflow="visible" style="--dh-tinta:#1B1714;--dh-papel:#F2E9D8;--dh-acento:#CF3A2B;--dh-boca:#A8402F;--dh-cristal:#8FB8C4">` +
     `<defs>${DATOS.defs}${DEFS_ESCENARIOS}<clipPath id="dh-clip"><rect x="0" y="0" width="${layout.ancho}" height="${layout.alto}"/></clipPath></defs>` +
     `<g clip-path="url(#dh-clip)">` +
     `<g class="${camaraClase}" ${camaraAttr}>` +
@@ -349,8 +368,11 @@ function componer(v: Vineta, catalogo: Catalogo, op: OpcionesComposicion): Compo
     (esc0.frente && !uso ? `<g class="dh-frente">${esc0.frente}</g>` : '') +
     `</g>` +
     pantallaFx +
+    `</g>` +
+    // Los globos, fuera del recorte: con `desborde` pueden salirse del marco.
+    // Dentro de él no cambia nada.
     `<g class="dh-globos">${globosSvg}</g>` +
-    `</g></svg>`;
+    `</svg>`;
 
   // Ids únicos por viñeta: dos viñetas en la misma página no pueden
   // compartir el id de un <pattern> o el segundo pierde sus colores.
