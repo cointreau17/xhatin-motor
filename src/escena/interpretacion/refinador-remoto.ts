@@ -11,8 +11,8 @@
  * así que vale igual en el remote, en el laboratorio o en un test.
  */
 
-import type { Intencion, Interpretacion, MensajeEntrada, TipoGlobo, Tono } from '../modelo';
-import type { ContextoInterpretacion, Refinador } from './interprete';
+import type { Intencion, Interpretacion, MensajeEntrada, TipoGlobo, Tono } from '../modelo.js';
+import type { ContextoInterpretacion, Refinador } from './interprete.js';
 
 /** Los valores que puede devolver el servicio, además de las expresiones del catálogo. */
 export const GLOBOS: readonly TipoGlobo[] = ['dialogo', 'pregunta', 'pensamiento', 'grito', 'susurro', 'narracion', 'sonido', 'reaccion'];

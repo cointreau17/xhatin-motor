@@ -14,7 +14,7 @@
  * mensaje (qué significa) y para las de escena (cómo reaccionan los demás).
  */
 
-import type { PasoTraza } from '../modelo';
+import type { PasoTraza } from '../modelo.js';
 
 export interface Regla<C> {
   id: string;

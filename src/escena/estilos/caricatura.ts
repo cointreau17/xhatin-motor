@@ -5,7 +5,7 @@
  * no se edita a mano. Las imágenes están en public/estilos/caricatura/.
  */
 
-import type { EstiloComic } from './tipos';
+import type { EstiloComic } from './tipos.js';
 
 export const CARICATURA: EstiloComic = {
   "id": "caricatura",

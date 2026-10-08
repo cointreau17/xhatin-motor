@@ -16,11 +16,11 @@
  *   tiempo, rehace la viñeta abierta. Ver `Director.refinadores`.
  */
 
-import type { Catalogo } from '../catalogo/catalogo';
-import type { EstadoEscena, Interpretacion, Intencion, MensajeEntrada, TipoGlobo, TipoMirada, TipoPlano, Tono } from '../modelo';
-import { REGLAS_BASE, intensidadDe, type CtxMensaje } from './reglas-base';
-import { MotorReglas, Pizarra } from './reglas';
-import { extraerSenales, type Senales } from './senales';
+import type { Catalogo } from '../catalogo/catalogo.js';
+import type { EstadoEscena, Interpretacion, Intencion, MensajeEntrada, TipoGlobo, TipoMirada, TipoPlano, Tono } from '../modelo.js';
+import { REGLAS_BASE, intensidadDe, type CtxMensaje } from './reglas-base.js';
+import { MotorReglas, Pizarra } from './reglas.js';
+import { extraerSenales, type Senales } from './senales.js';
 
 export interface ContextoInterpretacion {
   estado: EstadoEscena;

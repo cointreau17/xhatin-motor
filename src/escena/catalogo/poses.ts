@@ -14,7 +14,7 @@
  * relativo al brazo. El brazo "delante" es el del lado hacia el que mira.
  */
 
-import type { DefBrazo, DefPierna, DefPose } from './tipos';
+import type { DefBrazo, DefPierna, DefPose } from './tipos.js';
 
 /* Piezas que se repiten entre poses. */
 const BRAZO_REPOSO_DEL: DefBrazo = { hombro: 7, codo: 5, mano: 'relajada', capa: 'torso' };

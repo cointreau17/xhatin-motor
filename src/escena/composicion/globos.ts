@@ -17,8 +17,8 @@
  * El rabito apunta a la boca pero se detiene en el borde de la cara.
  */
 
-import type { Globo, TipoGlobo } from '../modelo';
-import type { Caja, Punto } from '../personaje/esqueleto';
+import type { Globo, TipoGlobo } from '../modelo.js';
+import type { Caja, Punto } from '../personaje/esqueleto.js';
 
 const TINTA = 'var(--dh-tinta, #1B1714)';
 const FONDO_GLOBO = '#FFFCF3';

@@ -9,10 +9,10 @@
  * lo usan para saber dónde están las caras sin dibujar nada.
  */
 
-import type { Catalogo } from '../catalogo/catalogo';
-import type { DefProp } from '../catalogo/tipos';
-import { MUNDO, SUELO, TAM_VINETA, type PersonajeEnEscena, type PropEnEscena, type Vineta } from '../modelo';
-import { resolverEsqueleto, type Caja, type Esqueleto, type Punto } from '../personaje/esqueleto';
+import type { Catalogo } from '../catalogo/catalogo.js';
+import type { DefProp } from '../catalogo/tipos.js';
+import { MUNDO, SUELO, TAM_VINETA, type PersonajeEnEscena, type PropEnEscena, type Vineta } from '../modelo.js';
+import { resolverEsqueleto, type Caja, type Esqueleto, type Punto } from '../personaje/esqueleto.js';
 
 export interface Colocacion {
   personaje: PersonajeEnEscena;

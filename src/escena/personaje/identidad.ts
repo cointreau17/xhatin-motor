@@ -12,8 +12,8 @@
  * `Partial<IdentidadVisual>` como `preferencias`: pisan lo derivado.
  */
 
-import { aCodigo, aleatorio, deCodigo } from '../../hilaravatar/hilaravatar';
-import type { Calzado, Complexion, IdentidadVisual } from '../modelo';
+import { aCodigo, aleatorio, deCodigo } from '../../hilaravatar/hilaravatar.js';
+import type { Calzado, Complexion, IdentidadVisual } from '../modelo.js';
 
 /** Pantalones: tonos de tela desaturados, con su sombra (IDENTIDAD.md). */
 const PANTALONES: ReadonlyArray<[string, string]> = [

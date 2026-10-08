@@ -11,13 +11,13 @@
  *   mismo formato.
  */
 
-import { EFECTOS } from './efectos';
-import { ESCENARIOS } from './escenarios';
-import { EXPRESIONES, MARCAS, idExpresion } from './expresiones';
-import { POSES } from './poses';
-import { PROPS } from './props';
-import { Registro } from './registro';
-import type { DefEfecto, DefEscenario, DefExpresion, DefMarca, DefPose, DefProp, PaqueteCatalogo } from './tipos';
+import { EFECTOS } from './efectos.js';
+import { ESCENARIOS } from './escenarios.js';
+import { EXPRESIONES, MARCAS, idExpresion } from './expresiones.js';
+import { POSES } from './poses.js';
+import { PROPS } from './props.js';
+import { Registro } from './registro.js';
+import type { DefEfecto, DefEscenario, DefExpresion, DefMarca, DefPose, DefProp, PaqueteCatalogo } from './tipos.js';
 
 export class Catalogo {
   readonly poses = new Registro<DefPose>('poses', POSES, 'de-pie');

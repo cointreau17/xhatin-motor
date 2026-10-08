@@ -8,20 +8,20 @@
  * dibujado allí.
  */
 
-import { CATALOGO, Catalogo } from './catalogo/catalogo';
-import { Director } from './director/director';
-import { InterpreteReglas } from './interpretacion/interprete';
-import { refinadorRemoto } from './interpretacion/refinador-remoto';
-import { CARICATURA } from './estilos/caricatura';
-import { elegirFigura } from './estilos/figuras';
-import { MotorReglas } from './interpretacion/reglas';
-import { REGLAS_BASE, type CtxMensaje } from './interpretacion/reglas-base';
-import { componerVineta } from './composicion/compositor';
-import { aVineta } from './composicion/camara';
-import { identidadDe } from './personaje/identidad';
-import { dibujarPersonaje } from './personaje/personaje';
-import { CONVERSACIONES, REPARTO } from './pruebas/conversaciones';
-import type { Interpretacion, MensajeEntrada, Vineta } from './modelo';
+import { CATALOGO, Catalogo } from './catalogo/catalogo.js';
+import { Director } from './director/director.js';
+import { InterpreteReglas } from './interpretacion/interprete.js';
+import { refinadorRemoto } from './interpretacion/refinador-remoto.js';
+import { CARICATURA } from './estilos/caricatura.js';
+import { elegirFigura } from './estilos/figuras.js';
+import { MotorReglas } from './interpretacion/reglas.js';
+import { REGLAS_BASE, type CtxMensaje } from './interpretacion/reglas-base.js';
+import { componerVineta } from './composicion/compositor.js';
+import { aVineta } from './composicion/camara.js';
+import { identidadDe } from './personaje/identidad.js';
+import { dibujarPersonaje } from './personaje/personaje.js';
+import { CONVERSACIONES, REPARTO } from './pruebas/conversaciones.js';
+import type { Interpretacion, MensajeEntrada, Vineta } from './modelo.js';
 
 const interprete = new InterpreteReglas();
 

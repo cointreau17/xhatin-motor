@@ -12,10 +12,10 @@
  * la cámara para encuadrar y los globos para apuntar el rabito.
  */
 
-import type { PersonajeEnEscena } from '../modelo';
-import type { Caja, Punto } from '../personaje/esqueleto';
-import { aMundo, type Colocacion } from '../composicion/layout';
-import type { CajaPx, FiguraImagen, PersonajeImagen } from './tipos';
+import type { PersonajeEnEscena } from '../modelo.js';
+import type { Caja, Punto } from '../personaje/esqueleto.js';
+import { aMundo, type Colocacion } from '../composicion/layout.js';
+import type { CajaPx, FiguraImagen, PersonajeImagen } from './tipos.js';
 
 /**
  * Alto de la cabeza en unidades del mundo. El personaje vectorial mide unas

@@ -13,7 +13,7 @@
  * adjunto (la foto que alguien "enseña" con el móvil, el cartel…).
  */
 
-import type { DefProp } from './tipos';
+import type { DefProp } from './tipos.js';
 
 const T = 'var(--dh-tinta, #1B1714)';
 const P = 'var(--dh-papel, #F2E9D8)';

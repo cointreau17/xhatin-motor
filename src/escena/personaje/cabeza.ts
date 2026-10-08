@@ -19,9 +19,9 @@
  */
 
 import { DATOS } from '../../hilaravatar/piezas.js';
-import { normalizar, deCodigo } from '../../hilaravatar/hilaravatar';
-import type { ConfigAvatar } from '../../hilaravatar/hilaravatar';
-import type { DefExpresion, DefMarca, RanuraCara } from '../catalogo/tipos';
+import { normalizar, deCodigo } from '../../hilaravatar/hilaravatar.js';
+import type { ConfigAvatar } from '../../hilaravatar/hilaravatar.js';
+import type { DefExpresion, DefMarca, RanuraCara } from '../catalogo/tipos.js';
 
 const PIEZAS = DATOS.piezas;
 

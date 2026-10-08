@@ -15,7 +15,7 @@
  * escenario que venga de remoto es exactamente eso, una cadena.
  */
 
-import type { DefEscenario } from './tipos';
+import type { DefEscenario } from './tipos.js';
 
 const T = 'var(--dh-tinta, #1B1714)';
 const P = 'var(--dh-papel, #F2E9D8)';

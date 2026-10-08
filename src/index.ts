@@ -10,17 +10,17 @@
  * HilarAvatar (`normalizar`, del léxico, no es el `normalizar` del avatar).
  */
 
-export * as Escena from './escena';
+export * as Escena from './escena/index.js';
 
 export {
   MANIFEST, CATEGORIAS, PALETAS, EXPRESIONES, Z_ORDER, VERSION,
   porDefecto, normalizar, componer, aDataUrl, aPng,
   aCodigo, deCodigo, aleatorio, expresionDeTexto, definirElemento,
-} from './hilaravatar/hilaravatar';
+} from './hilaravatar/hilaravatar.js';
 
 export type {
   Categoria, CategoriaDef, ClaveColor, ConfigAvatar, Encuadre,
   Expresion, Manifest, Opcion, OpcionesRender, Tono,
-} from './hilaravatar/hilaravatar';
+} from './hilaravatar/hilaravatar.js';
 
-export * from './chat';
+export * from './chat/index.js';

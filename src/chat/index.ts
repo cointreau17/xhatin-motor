@@ -4,5 +4,5 @@
  * la web, la app en el móvil) implementa `PuertoChat`; el motor solo lo lee.
  */
 
-export type { AdjuntoChat, MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat';
-export { PuertoChatFalso } from './puerto-falso';
+export type { AdjuntoChat, MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
+export { PuertoChatFalso } from './puerto-falso.js';

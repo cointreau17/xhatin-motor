@@ -9,8 +9,8 @@
  * contexto o ignorarlas: no dependen de él ni él de ellas.
  */
 
-import type { Catalogo } from '../catalogo/catalogo';
-import type { AdjuntoEntrada } from '../modelo';
+import type { Catalogo } from '../catalogo/catalogo.js';
+import type { AdjuntoEntrada } from '../modelo.js';
 import {
   EMOJIS,
   EMOJIS_ESCENA,
@@ -20,7 +20,7 @@ import {
   normalizar,
   compactar,
   type CategoriaLexico,
-} from './lexico';
+} from './lexico.js';
 
 export interface Senales {
   texto: string;

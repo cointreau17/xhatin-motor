@@ -9,11 +9,11 @@
  * Siempre se deja aire encima de las cabezas: ahí van los globos.
  */
 
-import type { TipoPlano, Vineta } from '../modelo';
-import type { Caja } from '../personaje/esqueleto';
-import { MUNDO, TECHO_MUNDO } from '../modelo';
-import type { Colocacion, Layout } from './layout';
-import { alturaGlobos } from './globos';
+import type { TipoPlano, Vineta } from '../modelo.js';
+import type { Caja } from '../personaje/esqueleto.js';
+import { MUNDO, TECHO_MUNDO } from '../modelo.js';
+import type { Colocacion, Layout } from './layout.js';
+import { alturaGlobos } from './globos.js';
 
 export interface Encuadre {
   /** Rectángulo del mundo que se ve. */

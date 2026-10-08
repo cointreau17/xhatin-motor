@@ -19,17 +19,17 @@
  */
 
 import { DATOS } from '../../hilaravatar/piezas.js';
-import type { Catalogo } from '../catalogo/catalogo';
-import { DEFS_ESCENARIOS } from '../catalogo/escenarios';
-import { TECHO_MUNDO, type Vineta } from '../modelo';
-import type { DefEscenario } from '../catalogo/tipos';
-import { dibujarPersonaje, estiloColores } from '../personaje/personaje';
-import { configDe } from '../personaje/cabeza';
-import { encuadrar, matrizDe, aVineta, type Encuadre } from './camara';
-import { colocarGlobos, conFuentes, dibujarGlobo, type GloboColocado, type Obstaculos } from './globos';
-import { aMundo, calcularLayout, manoDelProp, type Colocacion, type ColocacionProp, type Layout } from './layout';
-import { colocarFigura, elegirFigura, type FiguraColocada } from '../estilos/figuras';
-import type { UsoEstilo } from '../estilos/tipos';
+import type { Catalogo } from '../catalogo/catalogo.js';
+import { DEFS_ESCENARIOS } from '../catalogo/escenarios.js';
+import { TECHO_MUNDO, type Vineta } from '../modelo.js';
+import type { DefEscenario } from '../catalogo/tipos.js';
+import { dibujarPersonaje, estiloColores } from '../personaje/personaje.js';
+import { configDe } from '../personaje/cabeza.js';
+import { encuadrar, matrizDe, aVineta, type Encuadre } from './camara.js';
+import { colocarGlobos, conFuentes, dibujarGlobo, type GloboColocado, type Obstaculos } from './globos.js';
+import { aMundo, calcularLayout, manoDelProp, type Colocacion, type ColocacionProp, type Layout } from './layout.js';
+import { colocarFigura, elegirFigura, type FiguraColocada } from '../estilos/figuras.js';
+import type { UsoEstilo } from '../estilos/tipos.js';
 
 export interface OpcionesComposicion {
   /**

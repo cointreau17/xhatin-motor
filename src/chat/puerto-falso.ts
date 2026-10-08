@@ -1,4 +1,4 @@
-import type { MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat';
+import type { MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
 
 /**
  * Un puerto de mentira, en memoria.
