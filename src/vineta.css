@@ -1,0 +1,112 @@
+/* Viñeta del motor de escena. Sin encapsulado (ver vineta.ts): todo cuelga
+   de .dh-vineta. Las animaciones son pequeñas a propósito: que la tira se
+   sienta viva sin marear. */
+
+.dh-vineta {
+  --dh-v-tinta: #1b1714;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid var(--dh-v-tinta);
+  border-radius: 6px;
+  background: #f2e9d8;
+  box-shadow: 5px 5px 0 rgb(0 0 0 / 45%);
+  /* Las viñetas fuera de pantalla no se pintan; el alto declarado evita
+     saltos de scroll. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}
+.dh-vineta__lienzo, .dh-vineta__lienzo > svg { display: block; width: 100%; height: auto; }
+
+/* Quieto por defecto: párpados abiertos, boca fija. */
+.dh-vineta .dh-parpados { opacity: 0; }
+.dh-vineta .dh-boca-b { opacity: 0; }
+
+/* ------------------------------------------------ entrada de la viñeta --- */
+.dh-vineta--viva[data-transicion="corte"] { animation: dh-v-corte .35s ease-out both; }
+.dh-vineta--viva[data-transicion="fundido"] { animation: dh-v-fundido .6s ease-out both; }
+.dh-vineta--viva[data-transicion="barrido"] { animation: dh-v-barrido .55s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes dh-v-corte { from { transform: scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes dh-v-fundido { from { opacity: 0; filter: brightness(.6); } to { opacity: 1; filter: none; } }
+@keyframes dh-v-barrido { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* Zoom de cámara desde el plano anterior. */
+.dh-vineta--viva .dh-camara--zoom { animation: dh-v-zoom .8s cubic-bezier(.3,.7,.2,1) both; }
+@keyframes dh-v-zoom { from { transform: var(--cam-desde); } to { transform: var(--cam-hasta); } }
+
+/* ----------------------------------------------------- vida en reposo --- */
+.dh-vineta--reciente .dh-parpados { animation: dh-parpadeo 4.6s infinite; }
+@keyframes dh-parpadeo { 0%, 94%, 100% { opacity: 0; } 95.5%, 98% { opacity: 1; } }
+
+.dh-vineta--reciente .dh-anim-respira { animation: dh-respira 3.4s ease-in-out var(--dh-retraso, 0s) infinite; }
+@keyframes dh-respira { 50% { transform: translateY(-1.5px) scaleY(1.008); } }
+
+/* Hablar: la boca alterna con su pareja un par de segundos. */
+.dh-vineta--viva .dh-habla .dh-boca-a { animation: dh-boca-a .28s steps(1) 7; }
+.dh-vineta--viva .dh-habla .dh-boca-b { animation: dh-boca-b .28s steps(1) 7; }
+@keyframes dh-boca-a { 50% { opacity: 0; } }
+@keyframes dh-boca-b { 0% { opacity: 0; } 50% { opacity: 1; } }
+
+/* ------------------------------------------------------------- gestos --- */
+.dh-vineta--viva .dh-anim-saludo .dh-brazo-del { animation: dh-saludo .42s ease-in-out 5 alternate; }
+@keyframes dh-saludo { from { transform: rotate(-9deg); } to { transform: rotate(10deg); } }
+.dh-vineta--viva .dh-anim-gesto .dh-brazo-del { animation: dh-gesto 1.1s ease-in-out 2 alternate; }
+@keyframes dh-gesto { from { transform: rotate(-6deg); } to { transform: rotate(5deg); } }
+.dh-vineta--viva .dh-anim-niega .dh-brazo-del { animation: dh-niega .3s ease-in-out 6 alternate; }
+@keyframes dh-niega { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+.dh-vineta--viva .dh-anim-escribe .dh-brazo-del,
+.dh-vineta--viva .dh-anim-teclea .dh-brazo-del { animation: dh-teclea .22s ease-in-out 12 alternate; }
+@keyframes dh-teclea { to { transform: rotate(4deg); } }
+.dh-vineta--viva .dh-anim-salto { animation: dh-salto .5s cubic-bezier(.3,.6,.4,1) 3; }
+@keyframes dh-salto { 40% { transform: translateY(-16px); } }
+.dh-vineta--viva .dh-anim-risa { animation: dh-risa .24s ease-in-out 8 alternate; }
+@keyframes dh-risa { to { transform: translateY(-4px) rotate(-1.2deg); } }
+.dh-vineta--viva .dh-anim-sobresalto { animation: dh-sobresalto .45s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes dh-sobresalto { from { transform: translateY(8px) scale(.96); } }
+.dh-vineta--viva .dh-anim-temblor { animation: dh-temblor .09s linear 18; }
+@keyframes dh-temblor { 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+.dh-vineta--viva .dh-anim-tension { animation: dh-tension .6s ease-out both; }
+@keyframes dh-tension { from { transform: rotate(-3deg); } }
+.dh-vineta--viva .dh-anim-camina { animation: dh-camina .5s ease-in-out 4 alternate; }
+@keyframes dh-camina { to { transform: translateY(-3px); } }
+.dh-vineta--viva .dh-anim-corre { animation: dh-camina .2s ease-in-out 10 alternate; }
+.dh-vineta--viva .dh-anim-baile { animation: dh-baile .45s ease-in-out 6 alternate; }
+@keyframes dh-baile { from { transform: rotate(-3deg); } to { transform: rotate(3deg) translateY(-5px); } }
+.dh-vineta--reciente .dh-anim-ronca { animation: dh-respira 2.6s ease-in-out infinite; }
+
+/* Entrar y salir de escena: se anda hacia delante (x local positiva es
+   hacia donde mira, así que vale para los dos lados). */
+.dh-vineta--viva .dh-nuevo.dh-anim-entrada { animation: dh-entra .9s cubic-bezier(.2,.7,.3,1) both; }
+@keyframes dh-entra { from { transform: translateX(-280px); opacity: 0; } 30% { opacity: 1; } }
+.dh-vineta--viva .dh-anim-salida { animation: dh-sale 1.1s ease-in .6s both; }
+@keyframes dh-sale { to { transform: translateX(340px); opacity: 0; } }
+
+/* ------------------------------------------------------------ efectos --- */
+.dh-vineta--viva .dh-fx.dh-nuevo { animation: dh-fx-aparece .35s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes dh-fx-aparece { from { opacity: 0; } }
+.dh-vineta--viva .dh-fx-salta .dh-fx-in { animation: dh-fx-salta .5s cubic-bezier(.2,1.8,.4,1) both; }
+@keyframes dh-fx-salta { from { transform: translateY(14px) scale(.4); } }
+.dh-vineta--reciente .dh-fx-sube .dh-fx-in { animation: dh-fx-sube 2.4s ease-in-out infinite alternate; }
+@keyframes dh-fx-sube { to { transform: translateY(-10px); } }
+.dh-vineta--reciente .dh-fx-flota .dh-fx-in { animation: dh-fx-sube 1.8s ease-in-out infinite alternate; }
+.dh-vineta--reciente .dh-fx-titila .dh-fx-in { animation: dh-fx-titila 1.2s ease-in-out infinite alternate; }
+@keyframes dh-fx-titila { to { opacity: .45; } }
+.dh-vineta--viva .dh-fx-late .dh-fx-in { animation: dh-fx-late .35s ease-in-out 6 alternate; }
+@keyframes dh-fx-late { to { transform: scale(1.12); } }
+.dh-vineta--viva .dh-fx-vibra .dh-fx-in { animation: dh-temblor .1s linear 12; }
+.dh-vineta--viva .dh-fx-gotea .dh-fx-in { animation: dh-fx-gotea .9s ease-in 2; }
+@keyframes dh-fx-gotea { to { transform: translateY(8px); } }
+.dh-vineta--viva .dh-fx-tiembla .dh-fx-in { animation: dh-temblor .1s linear 14; }
+.dh-vineta--viva .dh-fx-pulsa { animation: dh-fx-pulsa .5s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes dh-fx-pulsa { from { opacity: 0; transform: scale(.85); } }
+.dh-vineta--viva .dh-fx-cae { animation: dh-fx-cae 1.4s ease-out both; }
+@keyframes dh-fx-cae { from { transform: translateY(-60px); opacity: 0; } }
+
+/* ------------------------------------------------------------- globos --- */
+.dh-vineta--viva .dh-globo.dh-nuevo { animation: dh-globo .38s cubic-bezier(.2,1.5,.4,1) .15s both; }
+@keyframes dh-globo { from { transform: scale(.15); opacity: 0; } 60% { opacity: 1; } }
+
+/* Quien prefiere menos movimiento, lo tiene. */
+@media (prefers-reduced-motion: reduce) {
+  .dh-vineta, .dh-vineta * { animation: none !important; }
+}

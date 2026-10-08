@@ -1,0 +1,51 @@
+{
+  "name": "@diariohilario/xhatin-motor",
+  "version": "0.1.0",
+  "description": "Motor de Xhatín sin framework: HilarAvatar y el motor de escena (conversación → viñetas). Lo comparten xhatin (web) y diario-hilario-mobile.",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./escena": {
+      "types": "./dist/escena/index.d.ts",
+      "default": "./dist/escena/index.js"
+    },
+    "./escena/*": {
+      "types": "./dist/escena/*.d.ts",
+      "default": "./dist/escena/*.js"
+    },
+    "./avatar": {
+      "types": "./dist/hilaravatar/hilaravatar.d.ts",
+      "default": "./dist/hilaravatar/hilaravatar.js"
+    },
+    "./piezas": {
+      "types": "./dist/hilaravatar/piezas.d.ts",
+      "default": "./dist/hilaravatar/piezas.js"
+    },
+    "./chat": {
+      "types": "./dist/chat/index.d.ts",
+      "default": "./dist/chat/index.js"
+    },
+    "./vineta.css": "./dist/vineta.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/copiar-estaticos.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test && npm run build",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}
