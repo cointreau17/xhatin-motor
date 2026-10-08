@@ -11,6 +11,12 @@ Lo comparten los dos proyectos mellizos de Xhatín:
 
 Una sola copia del motor es lo que hace que la web y el móvil dibujen igual.
 
+Los avatares de HilarAvatar son los de todo el ecosistema DiarioHilario: un
+usuario es el mismo personaje en el diario, en el chat y, a futuro, en
+HilarioWorld (en 3D y en VR; cómo se hará ese personaje está por decidir). Por
+eso el código `v1|…` es un contrato compartido: no se cambia su formato sin
+subir versión, y cada pieza o expresión nueva se anota en el CHANGELOG.
+
 ## Qué se importa
 
 | Ruta | Qué es |
@@ -20,7 +26,7 @@ Una sola copia del motor es lo que hace que la web y el móvil dibujen igual.
 | `…/escena/*` | Módulos sueltos del motor, p. ej. `escena/pruebas/conversaciones` (los usa el laboratorio) |
 | `…/avatar` | HilarAvatar: `componer`, `aCodigo`, `deCodigo`, `aleatorio`, `expresionDeTexto`… |
 | `…/piezas` | Los datos de las piezas del avatar |
-| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat) y `PuertoChatFalso` |
+| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso` y `ControladorComic`, la conversación como cómic sin framework |
 | `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta` |
 
 ```ts

@@ -1,5 +1,16 @@
 # Cambios
 
+## 0.4.0
+
+- `ControladorComic` (en `/chat`): la conversación como cómic sin framework,
+  sacada de `comic-chat.ts` de xhatin. Conecta con un `PuertoChat` (sin
+  perder lo que llega mientras viaja el historial y sin que una conexión
+  vieja escriba en la nueva), lleva el director con sus refinadores, las
+  viñetas del modo clásico, la gente, el avatar de respaldo y qué se anima.
+  Avisa de cada cambio con un `EstadoComic` nuevo (`suscribir`). Quien no
+  tenga puerto le da los mensajes a mano (`cargarHistorial`, `anadir`,
+  `presencia`, `conocerParticipantes`). Con 13 tests.
+
 ## 0.3.0
 
 - `componerVineta` acepta `separacion` (multiplica los huecos entre globos;
