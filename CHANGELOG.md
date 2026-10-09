@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.8.0
+
+- `PuertoChat.marcarLeido()` (opcional): da por leída la conversación. En
+  `puertoStream` es `markRead()` del canal; vale para la web y la app, porque
+  lo leído es del usuario y no del dispositivo.
+- 1 test nuevo (113 en total).
+
 ## 0.7.0
 
 - `PuertoChat.historialAnterior(antesDe, limite)` (opcional): los mensajes

@@ -17,6 +17,8 @@ export interface CanalStream {
   query(opciones: { messages: { limit: number; id_lt?: string } }): Promise<{ messages?: MensajeStream[] }>;
   sendMessage(mensaje: { text: string }): Promise<unknown>;
   on(evento: string, cb: (e: EventoStream) => void): { unsubscribe(): void };
+  /** Opcional: los puertos de solo lectura no lo necesitan. */
+  markRead?(): Promise<unknown>;
   /** Lo rellena `watch()`: entre otras cosas, los miembros del canal. */
   state?: { members?: Record<string, MiembroStream> };
 }
@@ -125,6 +127,11 @@ export function puertoStream(canal: () => CanalStream | Promise<CanalStream>): P
         cancelado = true;
         baja?.();
       };
+    },
+
+    marcarLeido: async () => {
+      const c = await vigilado();
+      await c.markRead?.();
     },
 
     enviar: async (texto: string) => {

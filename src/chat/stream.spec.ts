@@ -35,6 +35,11 @@ class CanalFalso implements CanalStream {
     this.enviados.push(mensaje.text);
   }
 
+  leido = 0;
+  async markRead(): Promise<void> {
+    this.leido++;
+  }
+
   on(evento: string, cb: (e: EventoStream) => void): { unsubscribe(): void } {
     const lista = this.oyentes.get(evento) ?? new Set();
     lista.add(cb);
@@ -90,6 +95,12 @@ describe('puerto sobre un canal de Stream', () => {
     expect(canal.enviados).toEqual(['¿qué tal?']);
     expect(obtener).toHaveBeenCalledTimes(1);
     expect(canal.vigilado).toBe(1);
+  });
+
+  it('marca la conversación como leída en el canal', async () => {
+    const canal = new CanalFalso();
+    await puertoStream(() => canal).marcarLeido?.();
+    expect(canal.leido).toBe(1);
   });
 
   it('los anteriores a uno dado, para cargar más al subir', async () => {

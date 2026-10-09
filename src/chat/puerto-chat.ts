@@ -83,6 +83,12 @@ export interface PuertoChat {
    * dio `historial`.
    */
   historialAnterior?(antesDe: string, limite?: number): Promise<MensajeChat[]>;
+  /**
+   * OPCIONAL. Da por leida la conversacion (quien la mira la tiene delante).
+   * Es del usuario, no del dispositivo: si se lee en la app, deja de contar
+   * como no leida tambien en la web.
+   */
+  marcarLeido?(): Promise<void>;
   /** Suscribe a los mensajes nuevos. Devuelve la funcion de baja. */
   alRecibir(cb: (mensaje: MensajeChat) => void): () => void;
   /** Fuera del alcance de la vista de solo lectura, pero parte del contrato. */
