@@ -25,8 +25,10 @@ class CanalFalso implements CanalStream {
     }
   }
 
-  async query(opciones: { messages: { limit: number } }): Promise<{ messages: MensajeStream[] }> {
-    return { messages: this.mensajes.slice(-opciones.messages.limit) };
+  async query(opciones: { messages: { limit: number; id_lt?: string } }): Promise<{ messages: MensajeStream[] }> {
+    const { limit, id_lt } = opciones.messages;
+    const hasta = id_lt ? this.mensajes.findIndex((m) => m.id === id_lt) : this.mensajes.length;
+    return { messages: this.mensajes.slice(Math.max(0, hasta - limit), hasta) };
   }
 
   async sendMessage(mensaje: { text: string }): Promise<void> {
@@ -87,6 +89,14 @@ describe('puerto sobre un canal de Stream', () => {
     expect(historial.map((m) => m.texto)).toEqual(['dos', 'tres']);
     expect(canal.enviados).toEqual(['¿qué tal?']);
     expect(obtener).toHaveBeenCalledTimes(1);
+    expect(canal.vigilado).toBe(1);
+  });
+
+  it('los anteriores a uno dado, para cargar más al subir', async () => {
+    const canal = new CanalFalso(['m1', 'm2', 'm3', 'm4', 'm5'].map((id) => ({ id, text: id, user: ANA })));
+    const puerto = puertoStream(() => canal);
+    expect((await puerto.historialAnterior?.('m4', 2))?.map((m) => m.id)).toEqual(['m2', 'm3']);
+    expect((await puerto.historialAnterior?.('m2', 5))?.map((m) => m.id)).toEqual(['m1']);
     expect(canal.vigilado).toBe(1);
   });
 

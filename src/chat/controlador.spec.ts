@@ -221,6 +221,22 @@ describe('ControladorComic', () => {
     expect(c.estado.novedades).toBeNull();
   });
 
+  it('los mensajes más antiguos entran sin animar nada', async () => {
+    const c = new ControladorComic();
+    c.cargarHistorial(HISTORIAL.slice(1));
+    expect(c.estado.novedades?.que).toBe('*');
+    c.cargarHistorial(HISTORIAL.slice(0, 1), { animar: false });
+    expect(c.estado.novedades).toBeNull();
+    expect(c.estado.tira.map((v) => v.mensajes)).toEqual(tiraDe(HISTORIAL));
+  });
+
+  it('el puerto falso también da los anteriores', async () => {
+    const puerto = new PuertoChatFalso(4);
+    const ultimos = await puerto.historial(2);
+    const antes = await puerto.historialAnterior(ultimos[0]!.id, 5);
+    expect(antes.map((m) => m.id)).toEqual(['falso-0', 'falso-1']);
+  });
+
   it('funciona con el puerto falso', async () => {
     const c = new ControladorComic();
     const puerto = new PuertoChatFalso(4);

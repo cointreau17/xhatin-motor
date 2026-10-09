@@ -11,4 +11,6 @@ export { PuertoChatFalso } from './puerto-falso.js';
 export { ControladorComic, HISTORIAL_POR_DEFECTO } from './controlador.js';
 export type { EstadoComic, Novedades, OpcionesControlador, VinetaClasica } from './controlador.js';
 export { mensajeDeStream, puertoStream } from './stream.js';
+export { CARAS_EN_CABECERA, conQuien, interlocutores } from './gente.js';
+export type { Interlocutor } from './gente.js';
 export type { CanalStream, EventoStream, MensajeStream, MiembroStream, UsuarioStream } from './stream.js';

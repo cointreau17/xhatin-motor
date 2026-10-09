@@ -76,6 +76,13 @@ export interface ParticipanteChat {
 export interface PuertoChat {
   /** Los ultimos mensajes, en orden cronologico. */
   historial(limite?: number): Promise<MensajeChat[]>;
+  /**
+   * OPCIONAL. Los mensajes anteriores a uno dado (el mas antiguo que ya se
+   * tiene), en orden cronologico: cargar mas historial al subir. Si devuelve
+   * menos de `limite`, no hay mas. Sin el, la conversacion se queda en lo que
+   * dio `historial`.
+   */
+  historialAnterior?(antesDe: string, limite?: number): Promise<MensajeChat[]>;
   /** Suscribe a los mensajes nuevos. Devuelve la funcion de baja. */
   alRecibir(cb: (mensaje: MensajeChat) => void): () => void;
   /** Fuera del alcance de la vista de solo lectura, pero parte del contrato. */

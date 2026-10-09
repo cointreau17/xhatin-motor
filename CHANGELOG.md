@@ -1,5 +1,17 @@
 # Cambios
 
+## 0.7.0
+
+- `PuertoChat.historialAnterior(antesDe, limite)` (opcional): los mensajes
+  anteriores a uno dado, para cargar más historial al subir. Lo implementan
+  `puertoStream` (Stream pagina con `id_lt`) y `PuertoChatFalso`.
+- `ControladorComic.cargarHistorial(historial, { animar: false })`: para esos
+  mensajes antiguos, que no deben volver a animar la última viñeta.
+- `interlocutores` y `conQuien` (en `/chat`): con quién hablas y cómo se
+  nombra en la cabecera «Hablando con…», sacados de `comic-chat.ts` de
+  xhatin para que la app los cuente igual. `CARAS_EN_CABECERA` = 3.
+- 6 tests nuevos (112 en total).
+
 ## 0.6.0
 
 - `puertoStream` (en `/chat`): un canal de Stream como `PuertoChat`, sacado

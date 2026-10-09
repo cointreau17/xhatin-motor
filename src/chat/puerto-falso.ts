@@ -66,6 +66,16 @@ export class PuertoChatFalso implements PuertoChat {
     return new Promise((ok) => setTimeout(() => ok(mensajes.slice(-limite)), 400));
   }
 
+  /** Las lineas del guion antes de `antesDe`, como si vinieran de la red. */
+  historialAnterior(antesDe: string, limite = 50): Promise<MensajeChat[]> {
+    const hasta = Number(antesDe.replace('falso-', ''));
+    const desde = Math.max(0, hasta - limite);
+    const mensajes = Number.isInteger(hasta)
+      ? GUION.slice(desde, hasta).map((linea, i) => this.mensaje(linea, desde + i))
+      : [];
+    return new Promise((ok) => setTimeout(() => ok(mensajes), 400));
+  }
+
   alRecibir(cb: (mensaje: MensajeChat) => void): () => void {
     this.oyentes.add(cb);
     return () => this.oyentes.delete(cb);

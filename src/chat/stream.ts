@@ -14,7 +14,7 @@ import type { MensajeChat, ParticipanteChat, PuertoChat } from './puerto-chat.js
 /** Lo que se usa de un canal de Stream (`Channel` de `stream-chat`). */
 export interface CanalStream {
   watch(): Promise<unknown>;
-  query(opciones: { messages: { limit: number } }): Promise<{ messages?: MensajeStream[] }>;
+  query(opciones: { messages: { limit: number; id_lt?: string } }): Promise<{ messages?: MensajeStream[] }>;
   sendMessage(mensaje: { text: string }): Promise<unknown>;
   on(evento: string, cb: (e: EventoStream) => void): { unsubscribe(): void };
   /** Lo rellena `watch()`: entre otras cosas, los miembros del canal. */
@@ -67,8 +67,8 @@ export function mensajeDeStream(m: MensajeStream): MensajeChat {
  *   puertoStream(() => cliente.channel('messaging', { members: [yo, otro] }))
  *
  * `canal` se llama una sola vez, la primera vez que hace falta, y el canal se
- * vigila (`watch()`) también una sola vez: va a la red y lo comparten las
- * cinco funciones del puerto. Si falla, la siguiente llamada lo vuelve a
+ * vigila (`watch()`) también una sola vez: va a la red y lo comparten todas
+ * las funciones del puerto. Si falla, la siguiente llamada lo vuelve a
  * intentar (`reintentar()` del controlador sirve de algo).
  */
 export function puertoStream(canal: () => CanalStream | Promise<CanalStream>): PuertoChat {
@@ -93,6 +93,13 @@ export function puertoStream(canal: () => CanalStream | Promise<CanalStream>): P
     historial: async (limite = 50) => {
       const c = await vigilado();
       const respuesta = await c.query({ messages: { limit: limite } });
+      return (respuesta.messages ?? []).map(mensajeDeStream);
+    },
+
+    // Los anteriores al más antiguo que se tiene: Stream pagina por id.
+    historialAnterior: async (antesDe, limite = 50) => {
+      const c = await vigilado();
+      const respuesta = await c.query({ messages: { limit: limite, id_lt: antesDe } });
       return (respuesta.messages ?? []).map(mensajeDeStream);
     },
 

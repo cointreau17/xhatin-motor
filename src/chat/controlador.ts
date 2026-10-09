@@ -224,9 +224,11 @@ export class ControladorComic {
 
   /**
    * El historial de una vez: se une a lo que ya hubiera llegado, sin
-   * repetidos y en orden, y solo la última viñeta entra animada.
+   * repetidos y en orden, y solo la última viñeta entra animada. Con
+   * `animar: false` no se anima nada: para mensajes más antiguos que llegan
+   * al subir, que no cambian lo último que se ha visto.
    */
-  cargarHistorial(historial: readonly MensajeChat[]): void {
+  cargarHistorial(historial: readonly MensajeChat[], opciones: { animar?: boolean } = {}): void {
     for (const m of historial) this.conocerAutor(m);
     this.poner({ vinetas: this.unir(historial.map((m) => this.aVineta(m)), this.estadoActual.vinetas) });
 
@@ -234,7 +236,7 @@ export class ControladorComic {
     const todos = [...historial.filter((m) => !vistos.has(m.id)), ...this.mensajesEscena];
     this.mensajesEscena = todos.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
     this.director.reconstruir(this.mensajesEscena);
-    this.publicar('*');
+    this.publicar(opciones.animar === false ? null : '*');
     this.emitir();
   }
 
