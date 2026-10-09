@@ -1,6 +1,6 @@
 {
   "name": "@diariohilario/xhatin-motor",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Motor de Xhatín sin framework: HilarAvatar y el motor de escena (conversación → viñetas). Lo comparten xhatin (web) y diario-hilario-mobile.",
   "private": true,
   "type": "module",
@@ -30,6 +30,14 @@
     "./chat": {
       "types": "./dist/chat/index.d.ts",
       "default": "./dist/chat/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/xhatin.d.ts",
+      "default": "./dist/api/xhatin.js"
+    },
+    "./estilos": {
+      "types": "./dist/estilos/catalogo.d.ts",
+      "default": "./dist/estilos/catalogo.js"
     },
     "./vineta.css": "./dist/vineta.css",
     "./package.json": "./package.json"

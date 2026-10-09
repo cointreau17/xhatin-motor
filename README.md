@@ -27,6 +27,8 @@ subir versión, y cada pieza o expresión nueva se anota en el CHANGELOG.
 | `…/avatar` | HilarAvatar: `componer`, `aCodigo`, `deCodigo`, `aleatorio`, `expresionDeTexto`… |
 | `…/piezas` | Los datos de las piezas del avatar |
 | `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso` y `ControladorComic`, la conversación como cómic sin framework |
+| `…/api` | `crearApiXhatin({ url, token })`: el API de Xhatín en dhcore (perfiles, personajes, caricatura y refinador de IA). La URL y el token se los da quien lo usa |
+| `…/estilos` | Los estilos de cómic (`ESTILOS`, `opcionDe`), el reparto de personajes (`repartir`, `usoDe`) y las caricaturas propias |
 | `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta` |
 
 ```ts
@@ -53,9 +55,9 @@ nombres con HilarAvatar: el `normalizar` del léxico no es el del avatar.
   remote. Aquí solo hay lo que no depende de ningún framework.
 - **El cliente de Stream**: lo pone quien tiene la conexión (el shell en la
   web, la app en el móvil) implementando `PuertoChat`.
-- **`api-xhatin.ts` y `estilos.ts`**: leen el token y la URL del API de
-  DhPortero y la URL de los estilos de `import.meta.url`. Vendrán cuando
-  reciban esos datos desde fuera.
+- **DhPortero**: es como el shell comparte la sesión con sus remotes, y solo
+  existe en la web. El motor no lo usa: el API recibe la URL y el token, y
+  los estilos, dónde están sus imágenes.
 - **Las imágenes del estilo caricatura** (`public/estilos/`, unos 4 MB): las
   sirve el remote.
 

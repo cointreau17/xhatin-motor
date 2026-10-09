@@ -1,5 +1,19 @@
 # Cambios
 
+## 0.5.0
+
+- `/api`: el cliente del API de Xhatín en dhcore (`crearApiXhatin`), sacado
+  de `api-xhatin.ts` de xhatin: personajes, mi perfil (estilo y personaje),
+  los perfiles de los participantes, la caricatura por foto y el refinador de
+  IA (`refinador()`). Ya no depende de DhPortero: la URL del API y el token se
+  los da quien lo crea. La foto se puede subir como Blob (la web, que la
+  reduce en el navegador) o como `{ uri, name, type }` (React Native).
+- `/estilos`: el catálogo de estilos de cómic y el reparto de personajes,
+  sacado de `estilos.ts` de xhatin. `usoDe` recibe dónde están las imágenes
+  de los estilos y `cargarCaricatura`, la URL ya absoluta del manifiesto: las
+  dos cosas dependían del remote.
+- 23 tests nuevos (100 en total).
+
 ## 0.4.0
 
 - `ControladorComic` (en `/chat`): la conversación como cómic sin framework,

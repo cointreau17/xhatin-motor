@@ -6,6 +6,10 @@
  *   import { aleatorio, componer, Escena } from '@diariohilario/xhatin-motor';
  *   import { Director, componerVineta } from '@diariohilario/xhatin-motor/escena';
  *
+ * Además, el cliente del API de Xhatín (`/api`) y el catálogo de estilos
+ * (`/estilos`), que no dependen de DhPortero: la URL y la sesión se las da
+ * quien los usa.
+ *
  * El motor de escena va como espacio de nombres porque comparte nombres con
  * HilarAvatar (`normalizar`, del léxico, no es el `normalizar` del avatar).
  */
@@ -24,3 +28,15 @@ export type {
 } from './hilaravatar/hilaravatar.js';
 
 export * from './chat/index.js';
+
+export { crearApiXhatin } from './api/xhatin.js';
+export type {
+  ApiXhatin, ConfigApiXhatin, FotoNativa, IdEstilo, MiCaricatura,
+  PerfilXhatin, PersonajePublico, ResultadoCaricatura,
+} from './api/xhatin.js';
+
+export {
+  ESTILOS, ESTILO_POR_DEFECTO, opcionDe, prepararFuentes,
+  cargarCaricatura, conCaricaturas, repartir, usoDe,
+} from './estilos/catalogo.js';
+export type { OpcionEstilo } from './estilos/catalogo.js';
