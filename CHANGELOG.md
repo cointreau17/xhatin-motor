@@ -1,5 +1,17 @@
 # Cambios
 
+## 0.6.0
+
+- `puertoStream` (en `/chat`): un canal de Stream como `PuertoChat`, sacado
+  de `puerto-stream.ts` de xhatin para que la app móvil no lo copie. Sigue
+  sin importar `stream-chat` ni abrir conexiones: recibe una función que da
+  el canal (en la web, del cliente que publica el shell; en la app, de su
+  conexión nativa) y declara la forma mínima que usa (`CanalStream`).
+  `mensajeDeStream` traduce un mensaje suelto.
+- Si vigilar el canal falla, la siguiente llamada lo vuelve a intentar. Antes
+  el fallo se quedaba guardado y `reintentar()` no servía de nada.
+- 6 tests nuevos (106 en total).
+
 ## 0.5.0
 
 - `/api`: el cliente del API de Xhatín en dhcore (`crearApiXhatin`), sacado

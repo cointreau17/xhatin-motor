@@ -26,7 +26,7 @@ subir versión, y cada pieza o expresión nueva se anota en el CHANGELOG.
 | `…/escena/*` | Módulos sueltos del motor, p. ej. `escena/pruebas/conversaciones` (los usa el laboratorio) |
 | `…/avatar` | HilarAvatar: `componer`, `aCodigo`, `deCodigo`, `aleatorio`, `expresionDeTexto`… |
 | `…/piezas` | Los datos de las piezas del avatar |
-| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso` y `ControladorComic`, la conversación como cómic sin framework |
+| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso`, `ControladorComic`, la conversación como cómic sin framework, y `puertoStream`, el puerto sobre un canal de Stream |
 | `…/api` | `crearApiXhatin({ url, token })`: el API de Xhatín en dhcore (perfiles, personajes, caricatura y refinador de IA). La URL y el token se los da quien lo usa |
 | `…/estilos` | Los estilos de cómic (`ESTILOS`, `opcionDe`), el reparto de personajes (`repartir`, `usoDe`) y las caricaturas propias |
 | `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta` |
@@ -54,7 +54,8 @@ nombres con HilarAvatar: el `normalizar` del léxico no es el del avatar.
 - **Componentes de Angular**: el selector, el cómic y la viñeta se quedan en el
   remote. Aquí solo hay lo que no depende de ningún framework.
 - **El cliente de Stream**: lo pone quien tiene la conexión (el shell en la
-  web, la app en el móvil) implementando `PuertoChat`.
+  web, la app en el móvil). El motor no importa `stream-chat`: `puertoStream`
+  recibe el canal ya creado y solo usa cinco cosas de él (`CanalStream`).
 - **DhPortero**: es como el shell comparte la sesión con sus remotes, y solo
   existe en la web. El motor no lo usa: el API recibe la URL y el token, y
   los estilos, dónde están sus imágenes.
