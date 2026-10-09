@@ -11,8 +11,8 @@
  * el respaldo determinista.
  */
 
-import { aCodigo } from '../../hilaravatar/hilaravatar';
-import type { MensajeEntrada } from '../modelo';
+import { aCodigo } from '../../hilaravatar/hilaravatar.js';
+import type { MensajeEntrada } from '../modelo.js';
 
 type Piezas = Record<string, string>;
 const av = (piezas: Piezas, colores: Record<string, string>) => aCodigo({ piezas, colores } as never);

@@ -11,6 +11,12 @@ Lo comparten los dos proyectos mellizos de Xhatín:
 
 Una sola copia del motor es lo que hace que la web y el móvil dibujen igual.
 
+Los avatares de HilarAvatar son los de todo el ecosistema DiarioHilario: un
+usuario es el mismo personaje en el diario, en el chat y, a futuro, en
+HilarioWorld (en 3D y en VR; cómo se hará ese personaje está por decidir). Por
+eso el código `v1|…` es un contrato compartido: no se cambia su formato sin
+subir versión, y cada pieza o expresión nueva se anota en el CHANGELOG.
+
 ## Qué se importa
 
 | Ruta | Qué es |
@@ -20,7 +26,9 @@ Una sola copia del motor es lo que hace que la web y el móvil dibujen igual.
 | `…/escena/*` | Módulos sueltos del motor, p. ej. `escena/pruebas/conversaciones` (los usa el laboratorio) |
 | `…/avatar` | HilarAvatar: `componer`, `aCodigo`, `deCodigo`, `aleatorio`, `expresionDeTexto`… |
 | `…/piezas` | Los datos de las piezas del avatar |
-| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat) y `PuertoChatFalso` |
+| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso` y `ControladorComic`, la conversación como cómic sin framework |
+| `…/api` | `crearApiXhatin({ url, token })`: el API de Xhatín en dhcore (perfiles, personajes, caricatura y refinador de IA). La URL y el token se los da quien lo usa |
+| `…/estilos` | Los estilos de cómic (`ESTILOS`, `opcionDe`), el reparto de personajes (`repartir`, `usoDe`) y las caricaturas propias |
 | `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta` |
 
 ```ts
@@ -32,6 +40,12 @@ const { vineta } = director.procesar(mensaje);
 contenedor.innerHTML = componerVineta(vineta, CATALOGO).svg;
 ```
 
+`componerVineta` admite, además de `novedades`, `animar` y `estilo`, tres
+opciones para viñetas pequeñas (las usa la app móvil, con dos por fila):
+`escalaLetra` agranda la letra de los globos, `separacion` los junta y
+`desborde` les deja salirse por encima del marco. Con `desborde`, la viñeta
+tiene que llevar la clase `dh-vineta--desborda` para no recortarlos.
+
 El motor de escena va como espacio de nombres en la raíz porque comparte
 nombres con HilarAvatar: el `normalizar` del léxico no es el del avatar.
 
@@ -41,9 +55,9 @@ nombres con HilarAvatar: el `normalizar` del léxico no es el del avatar.
   remote. Aquí solo hay lo que no depende de ningún framework.
 - **El cliente de Stream**: lo pone quien tiene la conexión (el shell en la
   web, la app en el móvil) implementando `PuertoChat`.
-- **`api-xhatin.ts` y `estilos.ts`**: leen el token y la URL del API de
-  DhPortero y la URL de los estilos de `import.meta.url`. Vendrán cuando
-  reciban esos datos desde fuera.
+- **DhPortero**: es como el shell comparte la sesión con sus remotes, y solo
+  existe en la web. El motor no lo usa: el API recibe la URL y el token, y
+  los estilos, dónde están sus imágenes.
 - **Las imágenes del estilo caricatura** (`public/estilos/`, unos 4 MB): las
   sirve el remote.
 
@@ -53,25 +67,33 @@ El motor es puro salvo en dos sitios: `medidorCanvas`, que mide el texto de los
 globos con un canvas (sin él se usa `medirEstimado`), y `aPng`. El resto
 funciona igual en Node (SSR y tests).
 
-Los imports internos no llevan extensión: el paquete está pensado para
-empaquetadores (el builder de Angular con esbuild, Metro, Vite/Vitest), no para
-cargarlo directamente con el ESM de Node.
+Es ESM estándar, con la extensión `.js` en cada import relativo
+(`moduleResolution: NodeNext` lo exige al compilar). Así sirve tanto a los
+empaquetadores (Angular con esbuild, Metro) como a quien lo carga directamente
+con Node, que es lo que hacen los tests de Angular con lo que hay en
+`node_modules`.
 
 ## Instalarlo
 
 Por tag de git, igual que `@diariohilario/portero`:
 
 ```bash
-npm install git+ssh://git@gitlab.com/<grupo>/xhatin-motor.git#v0.1.0
+npm install github:cointreau17/xhatin-motor#v0.1.0
 ```
 
-En local, mientras se desarrolla a la vez que su consumidor:
+El repo es privado: donde se instale sin tu clave SSH (el CI de xhatin, EAS
+Build de la app) hará falta un token de GitHub con permiso de lectura.
 
-```bash
-npm install ../xhatin-motor
-```
+Mientras no haya tag, xhatin lo usa desde este checkout:
+`"@diariohilario/xhatin-motor": "file:../../xhatin-motor"` en
+`remote-angular/package.json`. npm lo enlaza y no lo compila, así que después
+de cambiar el motor hay que ejecutar aquí `npm run build` (o dejar
+`npx tsc -p tsconfig.build.json --watch`) y reiniciar el dev server de xhatin,
+que empaqueta al arrancar. Ese `file:` no se puede subir: el CI de xhatin no
+tiene esta carpeta.
 
-`dist/` no se versiona: el paquete se compila al instalarlo (script `prepare`).
+`dist/` no se versiona: instalado desde git, el paquete se compila solo
+(script `prepare`).
 npm 11 avisa de que es un script sin revisar. Sigue ejecutándolo, pero si algún
 día lo bloquea, se aprueba con
 `npm install-scripts approve @diariohilario/xhatin-motor`.
@@ -80,6 +102,7 @@ día lo bloquea, se aprueba con
 
 ```bash
 npm run build       # dist/: tsc + copia de HilarAvatar (JS) y vineta.css
+npm run clean       # borra dist/ (build no lo hace, para no dejar sin motor a quien lo usa)
 npm run typecheck
 npm test            # tests del motor de escena (vitest)
 npm run check       # las tres cosas
@@ -87,8 +110,8 @@ npm run check       # las tres cosas
 
 ## De dónde sale
 
-Copiado del remote de xhatin (`remote-angular/src/app`, commit `9e60a9b`, del
-28-09-2026), sin cambios:
+Sacado del remote de xhatin (`remote-angular/src/app`, commit `9e60a9b`, del
+28-09-2026), sin más cambio que la extensión `.js` en los imports relativos:
 
 - `escena/` entera, con sus tests;
 - de `hilaravatar/`: `hilaravatar.js`, `piezas.js` y sus `.d.ts`,
@@ -98,5 +121,5 @@ El `piezas.js` es el del remote, no el de `src/` en la raíz de xhatin: el de la
 raíz no tiene el arreglo `10b132b` (atributos repetidos que rompían `aDataUrl`
 y `aPng`).
 
-Hasta que el remote use este paquete, el motor existe en los dos sitios: un
-cambio hay que llevarlo a ambos, o mejor, terminar antes la migración.
+El remote ya no tiene su copia: importa de aquí. Los cambios del motor se
+hacen en este repo.

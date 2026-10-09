@@ -12,10 +12,10 @@
  * pega con la emoción, la cámara según la intensidad, los efectos…
  */
 
-import type { Catalogo } from '../catalogo/catalogo';
-import type { EstadoEscena, Interpretacion, MensajeEntrada } from '../modelo';
-import type { ContextoConPizarra, Regla } from './reglas';
-import { cuantas, hay, type Senales } from './senales';
+import type { Catalogo } from '../catalogo/catalogo.js';
+import type { EstadoEscena, Interpretacion, MensajeEntrada } from '../modelo.js';
+import type { ContextoConPizarra, Regla } from './reglas.js';
+import { cuantas, hay, type Senales } from './senales.js';
 
 export interface CtxMensaje extends ContextoConPizarra {
   m: MensajeEntrada;

@@ -21,7 +21,7 @@
  * no se lee sin ellos (risa, sorpresa, llanto…).
  */
 
-import type { DefExpresion, DefMarca } from './tipos';
+import type { DefExpresion, DefMarca } from './tipos.js';
 
 const TINTA = 'var(--dh-tinta, #1B1714)';
 const ACENTO = 'var(--dh-acento, #CF3A2B)';

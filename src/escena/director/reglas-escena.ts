@@ -13,9 +13,9 @@
  * sí se vota (varias reglas opinan sobre el encuadre).
  */
 
-import type { Catalogo } from '../catalogo/catalogo';
-import type { EstadoEscena, Interpretacion, Mirada, PersonajeEnEscena, TipoPlano, Vineta } from '../modelo';
-import type { ContextoConPizarra, Regla } from '../interpretacion/reglas';
+import type { Catalogo } from '../catalogo/catalogo.js';
+import type { EstadoEscena, Interpretacion, Mirada, PersonajeEnEscena, TipoPlano, Vineta } from '../modelo.js';
+import type { ContextoConPizarra, Regla } from '../interpretacion/reglas.js';
 
 export interface CtxEscena extends ContextoConPizarra {
   v: Vineta;

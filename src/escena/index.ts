@@ -9,36 +9,36 @@
  * tests y cualquier remote que quiera pintar una conversación. Ver ESCENA.md.
  */
 
-export * from './modelo';
+export * from './modelo.js';
 
-export { Catalogo, CATALOGO } from './catalogo/catalogo';
-export { Registro } from './catalogo/registro';
-export type * from './catalogo/tipos';
+export { Catalogo, CATALOGO } from './catalogo/catalogo.js';
+export { Registro } from './catalogo/registro.js';
+export type * from './catalogo/tipos.js';
 
-export { Director, CONFIG_POR_DEFECTO } from './director/director';
-export type { ConfigDirector, OpcionesDirector, ResultadoDirector } from './director/director';
-export { REGLAS_ESCENA, POSES_PERSISTENTES } from './director/reglas-escena';
-export type { CtxEscena } from './director/reglas-escena';
+export { Director, CONFIG_POR_DEFECTO } from './director/director.js';
+export type { ConfigDirector, OpcionesDirector, ResultadoDirector } from './director/director.js';
+export { REGLAS_ESCENA, POSES_PERSISTENTES } from './director/reglas-escena.js';
+export type { CtxEscena } from './director/reglas-escena.js';
 
-export { InterpreteReglas } from './interpretacion/interprete';
-export type { Interprete, Refinador, ContextoInterpretacion, DetalleInterpretacion } from './interpretacion/interprete';
-export { MotorReglas, Pizarra } from './interpretacion/reglas';
-export type { Regla } from './interpretacion/reglas';
-export { REGLAS_BASE } from './interpretacion/reglas-base';
-export { refinadorRemoto } from './interpretacion/refinador-remoto';
-export type { OpcionesRefinadorRemoto } from './interpretacion/refinador-remoto';
-export type { CtxMensaje } from './interpretacion/reglas-base';
-export { extraerSenales } from './interpretacion/senales';
-export type { Senales } from './interpretacion/senales';
-export { LEXICO, EMOJIS, normalizar, compactar } from './interpretacion/lexico';
+export { InterpreteReglas } from './interpretacion/interprete.js';
+export type { Interprete, Refinador, ContextoInterpretacion, DetalleInterpretacion } from './interpretacion/interprete.js';
+export { MotorReglas, Pizarra } from './interpretacion/reglas.js';
+export type { Regla } from './interpretacion/reglas.js';
+export { REGLAS_BASE } from './interpretacion/reglas-base.js';
+export { refinadorRemoto } from './interpretacion/refinador-remoto.js';
+export type { OpcionesRefinadorRemoto } from './interpretacion/refinador-remoto.js';
+export type { CtxMensaje } from './interpretacion/reglas-base.js';
+export { extraerSenales } from './interpretacion/senales.js';
+export type { Senales } from './interpretacion/senales.js';
+export { LEXICO, EMOJIS, normalizar, compactar } from './interpretacion/lexico.js';
 
-export { componerVineta, describir } from './composicion/compositor';
-export type { Composicion, OpcionesComposicion } from './composicion/compositor';
-export { usarMedidor, medidorCanvas, medirEstimado } from './composicion/globos';
+export { componerVineta, describir } from './composicion/compositor.js';
+export type { Composicion, OpcionesComposicion } from './composicion/compositor.js';
+export { usarMedidor, medidorCanvas, medirEstimado } from './composicion/globos.js';
 
-export type * from './estilos/tipos';
-export { CARICATURA } from './estilos/caricatura';
-export { elegirFigura, colocarFigura, ALTO_CABEZA } from './estilos/figuras';
+export type * from './estilos/tipos.js';
+export { CARICATURA } from './estilos/caricatura.js';
+export { elegirFigura, colocarFigura, ALTO_CABEZA } from './estilos/figuras.js';
 
-export { identidadDe } from './personaje/identidad';
-export { dibujarPersonaje } from './personaje/personaje';
+export { identidadDe } from './personaje/identidad.js';
+export { dibujarPersonaje } from './personaje/personaje.js';

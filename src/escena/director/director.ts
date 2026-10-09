@@ -18,7 +18,7 @@
  * No sabe nada de SVG ni de Angular. Produce objetos `Vineta`.
  */
 
-import { CATALOGO, type Catalogo } from '../catalogo/catalogo';
+import { CATALOGO, type Catalogo } from '../catalogo/catalogo.js';
 import type {
   EstadoEscena,
   EstadoPersonaje,
@@ -31,13 +31,13 @@ import type {
   TipoPlano,
   Transicion,
   Vineta,
-} from '../modelo';
-import { InterpreteReglas, type ContextoInterpretacion, type Interprete, type InterpretacionConDeltas, type Refinador } from '../interpretacion/interprete';
-import { MotorReglas, Pizarra } from '../interpretacion/reglas';
-import { identidadDe } from '../personaje/identidad';
-import { POSES_PERSISTENTES, REGLAS_ESCENA, type CtxEscena } from './reglas-escena';
-import { alturaGlobos } from '../composicion/globos';
-import { TAM_VINETA } from '../modelo';
+} from '../modelo.js';
+import { InterpreteReglas, type ContextoInterpretacion, type Interprete, type InterpretacionConDeltas, type Refinador } from '../interpretacion/interprete.js';
+import { MotorReglas, Pizarra } from '../interpretacion/reglas.js';
+import { identidadDe } from '../personaje/identidad.js';
+import { POSES_PERSISTENTES, REGLAS_ESCENA, type CtxEscena } from './reglas-escena.js';
+import { alturaGlobos } from '../composicion/globos.js';
+import { TAM_VINETA } from '../modelo.js';
 
 export interface ConfigDirector {
   /** Globos que caben en una viñeta, por formato. */

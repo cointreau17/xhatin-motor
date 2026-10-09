@@ -6,7 +6,7 @@
  * cara o animar la boca), así que necesita leer los fragmentos directamente y
  * no solo el SVG que devuelve `componer()`.
  */
-import type { Manifest } from './hilaravatar';
+import type { Manifest } from './hilaravatar.js';
 
 export declare const DATOS: {
   /** `<defs>` compartidos (tramas y patrones con ids `dh-…`). */

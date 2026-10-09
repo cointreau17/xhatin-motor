@@ -11,7 +11,7 @@
  * - Nada de negro puro ni primarios saturados (ver IDENTIDAD.md).
  */
 
-import type { Ambiente, Id, TipoMirada, Tono } from '../modelo';
+import type { Ambiente, Id, TipoMirada, Tono } from '../modelo.js';
 
 /* ------------------------------------------------------------- poses ------ */
 

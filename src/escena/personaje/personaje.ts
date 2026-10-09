@@ -14,11 +14,11 @@
  * la pose no obliga a recalcular trazos.
  */
 
-import { PALETAS } from '../../hilaravatar/hilaravatar';
-import type { ConfigAvatar } from '../../hilaravatar/hilaravatar';
-import type { IdentidadVisual } from '../modelo';
-import type { DefExpresion, DefMarca, DefPose, FormaMano } from '../catalogo/tipos';
-import { chapaEnPecho, configDe, dibujarCabeza } from './cabeza';
+import { PALETAS } from '../../hilaravatar/hilaravatar.js';
+import type { ConfigAvatar } from '../../hilaravatar/hilaravatar.js';
+import type { IdentidadVisual } from '../modelo.js';
+import type { DefExpresion, DefMarca, DefPose, FormaMano } from '../catalogo/tipos.js';
+import { chapaEnPecho, configDe, dibujarCabeza } from './cabeza.js';
 import {
   ANCLA_CABEZA,
   ESCALA_CABEZA,
@@ -29,8 +29,8 @@ import {
   type Esqueleto,
   type PiernaResuelta,
   type Punto,
-} from './esqueleto';
-import { contornoTorso, prendaDe, type GeometriaTorso, type Prenda } from './ropa';
+} from './esqueleto.js';
+import { contornoTorso, prendaDe, type GeometriaTorso, type Prenda } from './ropa.js';
 
 const TINTA = 'var(--dh-tinta, #1B1714)';
 const PIEL = 'var(--dh-piel, #E8B58C)';

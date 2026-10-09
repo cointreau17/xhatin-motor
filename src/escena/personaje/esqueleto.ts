@@ -11,8 +11,8 @@
  * mundo a escala 1: un personaje mide unas 370 unidades.
  */
 
-import type { Complexion } from '../modelo';
-import type { DefBrazo, DefPierna, DefPose } from '../catalogo/tipos';
+import type { Complexion } from '../modelo.js';
+import type { DefBrazo, DefPierna, DefPose } from '../catalogo/tipos.js';
 
 export interface Punto {
   x: number;

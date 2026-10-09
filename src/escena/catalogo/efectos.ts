@@ -12,7 +12,7 @@
  * - `pantalla`: viñeta normalizada 0–1 (se estira al tamaño real).
  */
 
-import type { DefEfecto } from './tipos';
+import type { DefEfecto } from './tipos.js';
 
 const T = 'var(--dh-tinta, #1B1714)';
 const P = 'var(--dh-papel, #F2E9D8)';

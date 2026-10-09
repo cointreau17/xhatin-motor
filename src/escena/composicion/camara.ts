@@ -9,11 +9,11 @@
  * Siempre se deja aire encima de las cabezas: ahí van los globos.
  */
 
-import type { TipoPlano, Vineta } from '../modelo';
-import type { Caja } from '../personaje/esqueleto';
-import { MUNDO, TECHO_MUNDO } from '../modelo';
-import type { Colocacion, Layout } from './layout';
-import { alturaGlobos } from './globos';
+import type { TipoPlano, Vineta } from '../modelo.js';
+import type { Caja } from '../personaje/esqueleto.js';
+import { MUNDO, TECHO_MUNDO } from '../modelo.js';
+import type { Colocacion, Layout } from './layout.js';
+import { alturaGlobos, conEscalaLetra } from './globos.js';
 
 export interface Encuadre {
   /** Rectángulo del mundo que se ve. */
@@ -78,7 +78,14 @@ export function encuadrar(v: Vineta, layout: Layout, plano: TipoPlano = v.camara
     const c = layout.personajes.find((p) => p.personaje.id === id);
     return c ? c.coronilla.x : layout.ancho / 2;
   };
-  const aireGlobos = Math.min(layout.alto * 0.66, alturaGlobos(v.globos, layout.ancho, v.rotulo, v.personajes.length >= 3, xMundo));
+  // Con la letra de siempre aunque se componga con otra (escalaLetra): si la
+  // cámara reservara el sitio de unos globos más grandes se alejaría y los
+  // personajes encogerían. Mejor que los globos se acomoden al encuadre; si no
+  // caben, la colocación los reduce sin tapar caras.
+  const aireGlobos = Math.min(
+    layout.alto * 0.66,
+    conEscalaLetra(1, () => alturaGlobos(v.globos, layout.ancho, v.rotulo, v.personajes.length >= 3, xMundo)),
+  );
   /**
    * Alto de mundo necesario para que, con el suelo del encuadre en `abajo`,
    * la parte de arriba de las caras quede por debajo de los globos:

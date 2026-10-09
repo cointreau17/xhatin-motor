@@ -18,6 +18,13 @@
 }
 .dh-vineta__lienzo, .dh-vineta__lienzo > svg { display: block; width: 100%; height: auto; }
 
+/* Globos que se salen del marco (opción `desborde` del motor). La viñeta deja
+   de recortar: ni overflow ni content-visibility, que también recorta lo que
+   se pinta fuera de la caja. La escena sigue recortada dentro del SVG: solo
+   asoman los globos, y por encima de la viñeta anterior, que va antes. */
+.dh-vineta--desborda { overflow: visible; content-visibility: visible; }
+.dh-vineta--desborda .dh-vineta__lienzo > svg { overflow: visible; }
+
 /* Quieto por defecto: párpados abiertos, boca fija. */
 .dh-vineta .dh-parpados { opacity: 0; }
 .dh-vineta .dh-boca-b { opacity: 0; }

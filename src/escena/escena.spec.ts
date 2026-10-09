@@ -8,20 +8,20 @@
  * dibujado allí.
  */
 
-import { CATALOGO, Catalogo } from './catalogo/catalogo';
-import { Director } from './director/director';
-import { InterpreteReglas } from './interpretacion/interprete';
-import { refinadorRemoto } from './interpretacion/refinador-remoto';
-import { CARICATURA } from './estilos/caricatura';
-import { elegirFigura } from './estilos/figuras';
-import { MotorReglas } from './interpretacion/reglas';
-import { REGLAS_BASE, type CtxMensaje } from './interpretacion/reglas-base';
-import { componerVineta } from './composicion/compositor';
-import { aVineta } from './composicion/camara';
-import { identidadDe } from './personaje/identidad';
-import { dibujarPersonaje } from './personaje/personaje';
-import { CONVERSACIONES, REPARTO } from './pruebas/conversaciones';
-import type { Interpretacion, MensajeEntrada, Vineta } from './modelo';
+import { CATALOGO, Catalogo } from './catalogo/catalogo.js';
+import { Director } from './director/director.js';
+import { InterpreteReglas } from './interpretacion/interprete.js';
+import { refinadorRemoto } from './interpretacion/refinador-remoto.js';
+import { CARICATURA } from './estilos/caricatura.js';
+import { elegirFigura } from './estilos/figuras.js';
+import { MotorReglas } from './interpretacion/reglas.js';
+import { REGLAS_BASE, type CtxMensaje } from './interpretacion/reglas-base.js';
+import { componerVineta } from './composicion/compositor.js';
+import { aVineta } from './composicion/camara.js';
+import { identidadDe } from './personaje/identidad.js';
+import { dibujarPersonaje } from './personaje/personaje.js';
+import { CONVERSACIONES, REPARTO } from './pruebas/conversaciones.js';
+import type { Interpretacion, MensajeEntrada, Vineta } from './modelo.js';
 
 const interprete = new InterpreteReglas();
 
@@ -461,6 +461,56 @@ describe('Composición', () => {
         expect(tapado / (c.ancho * c.alto), `${conv}/${v.id} tapa una cara: "${g.globo.texto}"`).toBeLessThan(0.08);
       });
     }
+  });
+
+  it('con desborde los globos solo se salen por arriba y lo justo, sin pisarse ni tapar caras', () => {
+    const DESBORDE = 60;
+    const movil = { animar: false, escalaLetra: 1.3, separacion: 0.5, desborde: DESBORDE };
+    let fuera = 0;
+    for (const { conv, v, d } of todas) {
+      const r = componerVineta(v, d.catalogo, movil);
+      const caras = r.layout.personajes.map((c) => aVineta(r.encuadre, c.cara));
+      r.globos.forEach((g, i) => {
+        const c = g.caja;
+        expect(c.x, `${conv}/${v.id}`).toBeGreaterThanOrEqual(0);
+        expect(c.y, `${conv}/${v.id}`).toBeGreaterThanOrEqual(-DESBORDE);
+        expect(c.x + c.ancho, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.ancho + 0.5);
+        expect(c.y + c.alto, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.alto + 0.5);
+        for (const otro of r.globos.slice(i + 1)) expect(solapa(c, otro.caja), `${conv}/${v.id} globos`).toBe(0);
+        const tapado = caras.reduce((s, f) => s + solapa(c, f), 0);
+        expect(tapado / (c.ancho * c.alto), `${conv}/${v.id} tapa una cara: "${g.globo.texto}"`).toBeLessThan(0.08);
+        if (c.y < 0) fuera++;
+      });
+      // Los valores por defecto son los de siempre.
+      expect(componerVineta(v, d.catalogo, { animar: false, separacion: 1, desborde: 0 }).svg).toBe(
+        componerVineta(v, d.catalogo, { animar: false }).svg,
+      );
+    }
+    expect(fuera).toBeGreaterThan(0);
+  });
+
+  it('con escalaLetra la letra crece y los globos siguen dentro, sin pisarse ni tapar caras', () => {
+    let mayores = 0;
+    for (const { conv, v, d } of todas) {
+      const normal = componerVineta(v, d.catalogo, { animar: false });
+      const r = componerVineta(v, d.catalogo, { animar: false, escalaLetra: 1.3 });
+      const caras = r.layout.personajes.map((c) => aVineta(r.encuadre, c.cara));
+      r.globos.forEach((g, i) => {
+        const c = g.caja;
+        expect(c.x, `${conv}/${v.id}`).toBeGreaterThanOrEqual(0);
+        expect(c.y, `${conv}/${v.id}`).toBeGreaterThanOrEqual(0);
+        expect(c.x + c.ancho, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.ancho + 0.5);
+        expect(c.y + c.alto, `${conv}/${v.id}`).toBeLessThanOrEqual(r.layout.alto + 0.5);
+        for (const otro of r.globos.slice(i + 1)) expect(solapa(c, otro.caja), `${conv}/${v.id} globos`).toBe(0);
+        const tapado = caras.reduce((s, f) => s + solapa(c, f), 0);
+        expect(tapado / (c.ancho * c.alto), `${conv}/${v.id} tapa una cara: "${g.globo.texto}"`).toBeLessThan(0.08);
+        const antes = normal.globos.find((x) => x.globo.id === g.globo.id);
+        if (antes && g.estilo.tam > antes.estilo.tam) mayores++;
+      });
+      // La escala no se queda puesta para la viñeta siguiente.
+      expect(componerVineta(v, d.catalogo, { animar: false }).svg).toBe(normal.svg);
+    }
+    expect(mayores).toBeGreaterThan(0);
   });
 
   it('dos viñetas con el mismo id en conversaciones distintas no comparten ids de SVG', () => {
