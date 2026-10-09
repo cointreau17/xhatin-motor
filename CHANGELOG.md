@@ -1,5 +1,17 @@
 # Cambios
 
+## 0.10.0
+
+- Xhatín enseña solo las conversaciones ya abiertas en Stream: un chat de
+  grupo se inicia desde el grupo, no desde Xhatín. Fuera
+  `juntarGruposYConversaciones` (y `GrupoConChat`, `GrupoDeLista`), y en el
+  API `leerMisGrupos` y `abrirChatDeGrupo`, que ya no usa nadie.
+- `chat/entorno`, sacado de la app para que la web también separe las
+  conversaciones de desarrollo y de producción: `conversacionesDe`,
+  `deEsteEntorno`, `filtrarPorEntorno` (que ahora sabe de qué entorno es el
+  API al que se pregunta) y `porComprobar`. En el API, `leerExisten`
+  (`GET /xhatin/existen`, de 100 en 100).
+
 ## 0.9.0
 
 - La lista de conversaciones de Xhatín, sacada de la app para que la web la

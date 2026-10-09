@@ -1,5 +1,6 @@
 import { refinadorRemoto } from '../escena/interpretacion/refinador-remoto.js';
 import type { Refinador } from '../escena/interpretacion/interprete.js';
+import type { Existen } from '../chat/entorno.js';
 
 /**
  * El API de Xhatín en dhcore: los personajes que se pueden elegir, el estilo
@@ -15,8 +16,7 @@ import type { Refinador } from '../escena/interpretacion/interprete.js';
  *   POST   /xhatin/caricatura/aprobar      fabricar la biblioteca
  *   DELETE /xhatin/caricatura              borrarla
  *   POST   /xhatin/interpretar             el refinador de IA
- *   GET    /user/groups                    mis grupos (la lista de Xhatín)
- *   POST   /group/{uuid}/chat              abrir el chat común de un grupo mío
+ *   GET    /xhatin/existen                 qué usuarios y grupos conoce este entorno
  *
  * No sabe de dónde salen la URL ni la sesión: se las da quien lo crea. La web
  * (xhatin) las lee de DhPortero, que es como el shell las comparte con sus
@@ -68,14 +68,6 @@ export interface FotoNativa {
   type: string;
 }
 
-/** Un grupo mío, como lo devuelve `GET /user/groups`. */
-export interface MiGrupo {
-  id: string;
-  slug: string;
-  name: string;
-  mediaType?: string;
-}
-
 /** El estado de la caricatura tras una acción, o el error para enseñarlo. */
 export interface ResultadoCaricatura {
   caricatura: MiCaricatura | null;
@@ -112,14 +104,12 @@ export interface ApiXhatin {
   /** Sube la foto, con el consentimiento. Ver `subirFoto` más abajo. */
   subirFoto(foto: Blob | FotoNativa): Promise<ResultadoCaricatura>;
   accionCaricatura(accion: 'repetir' | 'aprobar' | 'borrar'): Promise<ResultadoCaricatura>;
-  /** Los grupos de los que soy miembro; null si no se han podido leer. */
-  leerMisGrupos(): Promise<MiGrupo[] | null>;
   /**
-   * Abre el chat común de un grupo mío (el canal `group-<uuid>` de Stream):
-   * dhcore lo crea si no existe y pone al día sus miembros. Devuelve el id del
-   * canal, o el error para enseñarlo (no ser miembro, grupo que no existe…).
+   * De estos usuarios y grupos, los que conoce el API (para separar las
+   * conversaciones de cada entorno, ver chat/entorno). Pregunta de 100 en 100;
+   * null si alguna consulta falla.
    */
-  abrirChatDeGrupo(grupoId: string): Promise<{ canal: string | null; error: string | null }>;
+  leerExisten(usuarios: readonly string[], grupos: readonly string[]): Promise<Existen | null>;
   /**
    * El refinador de IA contra `POST /xhatin/interpretar`, o null si no se sabe
    * dónde está el API: entonces el chat sigue con las reglas.
@@ -215,16 +205,20 @@ export function crearApiXhatin(config: ConfigApiXhatin): ApiXhatin {
       return { caricatura: r.ok ? conUrls(r.datos) : null, error: r.error };
     },
 
-    async leerMisGrupos() {
-      const grupos = await pedir<unknown>('/user/groups');
-      return Array.isArray(grupos) ? grupos.filter(esMiGrupo) : null;
-    },
-
-    async abrirChatDeGrupo(grupoId) {
-      if (!UUID.test(grupoId)) return { canal: null, error: 'Ese grupo no existe.' };
-      const r = await pedirConError<{ canal?: string }>(`/group/${grupoId}/chat`, { method: 'POST' });
-      const canal = r.ok && typeof r.datos?.canal === 'string' ? r.datos.canal : null;
-      return { canal, error: canal ? null : (r.error ?? 'Algo ha fallado. Vuelve a intentarlo.') };
+    async leerExisten(usuarios, grupos) {
+      const resultado: Existen = { usuarios: [], grupos: [] };
+      const vueltas = Math.max(Math.ceil(usuarios.length / MAX_EXISTEN), Math.ceil(grupos.length / MAX_EXISTEN));
+      for (let i = 0; i < vueltas; i++) {
+        const u = usuarios.slice(i * MAX_EXISTEN, (i + 1) * MAX_EXISTEN);
+        const g = grupos.slice(i * MAX_EXISTEN, (i + 1) * MAX_EXISTEN);
+        const r = await pedir<Partial<Existen>>(
+          `/xhatin/existen?usuarios=${encodeURIComponent(u.join(','))}&grupos=${encodeURIComponent(g.join(','))}`,
+        );
+        if (!r || !Array.isArray(r.usuarios) || !Array.isArray(r.grupos)) return null;
+        resultado.usuarios.push(...r.usuarios);
+        resultado.grupos.push(...r.grupos);
+      }
+      return resultado;
     },
 
     refinador() {
@@ -236,10 +230,8 @@ export function crearApiXhatin(config: ConfigApiXhatin): ApiXhatin {
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
-function esMiGrupo(g: unknown): g is MiGrupo {
-  const x = g as Partial<MiGrupo> | null;
-  return typeof x?.id === 'string' && typeof x.slug === 'string' && typeof x.name === 'string';
-}
+/** Lo más que acepta dhcore en `/xhatin/existen` por consulta de cada lista. */
+const MAX_EXISTEN = 100;
 
 function esFotoNativa(foto: Blob | FotoNativa): foto is FotoNativa {
   return typeof (foto as FotoNativa).uri === 'string';

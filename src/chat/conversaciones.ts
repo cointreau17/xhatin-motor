@@ -1,9 +1,9 @@
 import { conQuien } from './gente.js';
 
 /**
- * La lista de conversaciones de Xhatín: mis grupos, cada uno con su chat
- * común, y mis chats con otras personas. La pintan igual la web (portada de
- * xhatin) y la app (pestaña Xhatín).
+ * La lista de conversaciones de Xhatín: las que ya están abiertas en Stream,
+ * los chats de grupo y los que tengo con otras personas. La pintan igual la
+ * web (portada de xhatin) y la app (pestaña Xhatín).
  */
 
 /** Una conversación en la lista: lo justo para pintarla. */
@@ -91,37 +91,5 @@ export function resumenDe(canal: CanalResumible, yo: string): ResumenConversacio
     otros: conId.map((m) => m.id),
     avatares: Object.fromEntries(conId.map((m) => [m.id, m.avatar])),
     grupo: grupoDeCanal(canal.id),
-  };
-}
-
-/** Lo mínimo de un grupo para la lista. */
-export interface GrupoDeLista {
-  id: string;
-  name: string;
-}
-
-/** Un grupo en Xhatín, con su chat común si ya existe en Stream. */
-export interface GrupoConChat<G extends GrupoDeLista = GrupoDeLista> {
-  grupo: G;
-  chat: ResumenConversacion | null;
-}
-
-/**
- * Junta mis grupos con mis conversaciones: cada grupo lleva su chat común (el
- * canal `group-<uuid>`) si ya existe, y esos chats salen de las conversaciones
- * para no verlos dos veces. Los grupos con actividad, arriba; los demás, por
- * orden alfabético.
- */
-export function juntarGruposYConversaciones<G extends GrupoDeLista>(
-  grupos: readonly G[],
-  conversaciones: readonly ResumenConversacion[],
-): { grupos: GrupoConChat<G>[]; conversaciones: ResumenConversacion[] } {
-  const porGrupo = new Map(conversaciones.flatMap((c) => (c.grupo ? [[c.grupo.toLowerCase(), c] as const] : [])));
-  const conChat = grupos.map((grupo) => ({ grupo, chat: porGrupo.get(grupo.id.toLowerCase()) ?? null }));
-  const usados = new Set(conChat.flatMap((g) => (g.chat ? [g.chat.id] : [])));
-  const fecha = (g: GrupoConChat<G>) => g.chat?.fecha ?? '';
-  return {
-    grupos: [...conChat].sort((a, b) => fecha(b).localeCompare(fecha(a)) || a.grupo.name.localeCompare(b.grupo.name, 'es')),
-    conversaciones: conversaciones.filter((c) => !usados.has(c.id)),
   };
 }

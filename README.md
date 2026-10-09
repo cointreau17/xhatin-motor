@@ -26,7 +26,7 @@ subir versión, y cada pieza o expresión nueva se anota en el CHANGELOG.
 | `…/escena/*` | Módulos sueltos del motor, p. ej. `escena/pruebas/conversaciones` (los usa el laboratorio) |
 | `…/avatar` | HilarAvatar: `componer`, `aCodigo`, `deCodigo`, `aleatorio`, `expresionDeTexto`… |
 | `…/piezas` | Los datos de las piezas del avatar |
-| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso`, `ControladorComic`, la conversación como cómic sin framework, `puertoStream`, el puerto sobre un canal de Stream, `interlocutores`/`conQuien` para la cabecera «Hablando con…» y la lista de conversaciones (`resumenDe`, `juntarGruposYConversaciones`) |
+| `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso`, `ControladorComic`, la conversación como cómic sin framework, `puertoStream`, el puerto sobre un canal de Stream, `interlocutores`/`conQuien` para la cabecera «Hablando con…», la lista de conversaciones (`resumenDe`) y qué conversaciones son de cada entorno (`filtrarPorEntorno`) |
 | `…/api` | `crearApiXhatin({ url, token })`: el API de Xhatín en dhcore (perfiles, personajes, caricatura y refinador de IA). La URL y el token se los da quien lo usa |
 | `…/estilos` | Los estilos de cómic (`ESTILOS`, `opcionDe`), el reparto de personajes (`repartir`, `usoDe`) y las caricaturas propias |
 | `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta` |
