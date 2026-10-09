@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.9.0
+
+- La lista de conversaciones de Xhatín, sacada de la app para que la web la
+  pinte igual en su portada: `resumenDe` (un canal de Stream visto por mí:
+  título, último mensaje, no leídos, con quién y sus caras, de qué grupo),
+  `grupoDeCanal`, `nombreDeGente` y `juntarGruposYConversaciones` (mis
+  grupos, cada uno con su chat común `group-<uuid>`, y el resto de chats).
+  Y `EVENTOS_DE_LA_LISTA`, los eventos de Stream con los que se vuelve a pedir.
+- API: `leerMisGrupos` (`GET /user/groups`) y `abrirChatDeGrupo`
+  (`POST /group/{uuid}/chat`, que crea el canal del grupo y pone al día sus
+  miembros).
+- 8 tests nuevos (121 en total).
+
 ## 0.8.0
 
 - `PuertoChat.marcarLeido()` (opcional): da por leída la conversación. En

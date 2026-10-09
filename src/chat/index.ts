@@ -13,4 +13,6 @@ export type { EstadoComic, Novedades, OpcionesControlador, VinetaClasica } from 
 export { mensajeDeStream, puertoStream } from './stream.js';
 export { CARAS_EN_CABECERA, conQuien, interlocutores } from './gente.js';
 export type { Interlocutor } from './gente.js';
+export { EVENTOS_DE_LA_LISTA, grupoDeCanal, juntarGruposYConversaciones, nombreDeGente, resumenDe } from './conversaciones.js';
+export type { CanalResumible, GrupoConChat, GrupoDeLista, ResumenConversacion } from './conversaciones.js';
 export type { CanalStream, EventoStream, MensajeStream, MiembroStream, UsuarioStream } from './stream.js';

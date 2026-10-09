@@ -15,6 +15,8 @@ import type { Refinador } from '../escena/interpretacion/interprete.js';
  *   POST   /xhatin/caricatura/aprobar      fabricar la biblioteca
  *   DELETE /xhatin/caricatura              borrarla
  *   POST   /xhatin/interpretar             el refinador de IA
+ *   GET    /user/groups                    mis grupos (la lista de Xhatín)
+ *   POST   /group/{uuid}/chat              abrir el chat común de un grupo mío
  *
  * No sabe de dónde salen la URL ni la sesión: se las da quien lo crea. La web
  * (xhatin) las lee de DhPortero, que es como el shell las comparte con sus
@@ -66,6 +68,14 @@ export interface FotoNativa {
   type: string;
 }
 
+/** Un grupo mío, como lo devuelve `GET /user/groups`. */
+export interface MiGrupo {
+  id: string;
+  slug: string;
+  name: string;
+  mediaType?: string;
+}
+
 /** El estado de la caricatura tras una acción, o el error para enseñarlo. */
 export interface ResultadoCaricatura {
   caricatura: MiCaricatura | null;
@@ -102,6 +112,14 @@ export interface ApiXhatin {
   /** Sube la foto, con el consentimiento. Ver `subirFoto` más abajo. */
   subirFoto(foto: Blob | FotoNativa): Promise<ResultadoCaricatura>;
   accionCaricatura(accion: 'repetir' | 'aprobar' | 'borrar'): Promise<ResultadoCaricatura>;
+  /** Los grupos de los que soy miembro; null si no se han podido leer. */
+  leerMisGrupos(): Promise<MiGrupo[] | null>;
+  /**
+   * Abre el chat común de un grupo mío (el canal `group-<uuid>` de Stream):
+   * dhcore lo crea si no existe y pone al día sus miembros. Devuelve el id del
+   * canal, o el error para enseñarlo (no ser miembro, grupo que no existe…).
+   */
+  abrirChatDeGrupo(grupoId: string): Promise<{ canal: string | null; error: string | null }>;
   /**
    * El refinador de IA contra `POST /xhatin/interpretar`, o null si no se sabe
    * dónde está el API: entonces el chat sigue con las reglas.
@@ -170,7 +188,7 @@ export function crearApiXhatin(config: ConfigApiXhatin): ApiXhatin {
     guardarMiPerfil: (cambio) => pedir<PerfilXhatin>('/xhatin/perfil', { method: 'PUT', body: JSON.stringify(cambio) }),
 
     async leerPerfiles(usuarios) {
-      const ids = [...new Set(usuarios)].filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+      const ids = [...new Set(usuarios)].filter((id) => UUID.test(id));
       if (!ids.length) return {};
       return (await pedir<Record<string, PerfilXhatin>>(`/xhatin/perfiles?usuarios=${ids.join(',')}`)) ?? {};
     },
@@ -197,11 +215,30 @@ export function crearApiXhatin(config: ConfigApiXhatin): ApiXhatin {
       return { caricatura: r.ok ? conUrls(r.datos) : null, error: r.error };
     },
 
+    async leerMisGrupos() {
+      const grupos = await pedir<unknown>('/user/groups');
+      return Array.isArray(grupos) ? grupos.filter(esMiGrupo) : null;
+    },
+
+    async abrirChatDeGrupo(grupoId) {
+      if (!UUID.test(grupoId)) return { canal: null, error: 'Ese grupo no existe.' };
+      const r = await pedirConError<{ canal?: string }>(`/group/${grupoId}/chat`, { method: 'POST' });
+      const canal = r.ok && typeof r.datos?.canal === 'string' ? r.datos.canal : null;
+      return { canal, error: canal ? null : (r.error ?? 'Algo ha fallado. Vuelve a intentarlo.') };
+    },
+
     refinador() {
       const base = url();
       return base ? refinadorRemoto({ url: `${base}/xhatin/interpretar`, cabeceras, fetch: config.fetch }) : null;
     },
   };
+}
+
+const UUID = /^[0-9a-f-]{36}$/i;
+
+function esMiGrupo(g: unknown): g is MiGrupo {
+  const x = g as Partial<MiGrupo> | null;
+  return typeof x?.id === 'string' && typeof x.slug === 'string' && typeof x.name === 'string';
 }
 
 function esFotoNativa(foto: Blob | FotoNativa): foto is FotoNativa {

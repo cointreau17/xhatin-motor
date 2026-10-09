@@ -137,6 +137,28 @@ describe('API de Xhatín', () => {
     expect(cabecera(peticiones[0]!, 'Authorization')).toBe('Bearer tok');
   });
 
+  it('mis grupos: solo los que traen id, slug y nombre', async () => {
+    const grupo = { id: A, slug: 'cacharreo-retro-ea761', name: 'Cacharreo Retro', mediaType: 'paper' };
+    const { cliente, peticiones } = api({}, () => new Response(JSON.stringify([grupo, { id: B }])));
+    expect(await cliente.leerMisGrupos()).toEqual([grupo]);
+    expect(peticiones[0]!.url).toBe('https://api.prueba/user/groups');
+    expect(await api({}, () => new Response('{}')).cliente.leerMisGrupos()).toBeNull();
+  });
+
+  it('abrir el chat de un grupo devuelve el canal, o el error del servidor', async () => {
+    const bien = api({}, () => new Response(JSON.stringify({ canal: 'group-' + A })));
+    expect(await bien.cliente.abrirChatDeGrupo(A)).toEqual({ canal: 'group-' + A, error: null });
+    expect(bien.peticiones[0]!.url).toBe(`https://api.prueba/group/${A}/chat`);
+    expect(bien.peticiones[0]!.init.method).toBe('POST');
+
+    const fuera = api({}, () => new Response(JSON.stringify({ message: 'No eres miembro del grupo' }), { status: 403 }));
+    expect(await fuera.cliente.abrirChatDeGrupo(A)).toEqual({ canal: null, error: 'No eres miembro del grupo' });
+
+    const raro = api();
+    expect((await raro.cliente.abrirChatDeGrupo("x' OR 1")).canal).toBeNull();
+    expect(raro.peticiones).toHaveLength(0);
+  });
+
   it('absoluta deja las URL absolutas como están', () => {
     const { cliente } = api();
     expect(cliente.absoluta('/xhatin/x.json')).toBe('https://api.prueba/xhatin/x.json');
