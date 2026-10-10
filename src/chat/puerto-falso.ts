@@ -1,4 +1,4 @@
-import type { MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
+import type { EscrituraChat, MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
 
 /**
  * Un puerto de mentira, en memoria.
@@ -51,6 +51,7 @@ const GUION: [number, string, ('imagen' | 'video' | 'archivo')?][] = [
 export class PuertoChatFalso implements PuertoChat {
   private readonly oyentes = new Set<(m: MensajeChat) => void>();
   private readonly presencia = new Set<(e: PresenciaChat) => void>();
+  private readonly escritura = new Set<(e: EscrituraChat) => void>();
   /** Quien ha "entrado" con `entra()`, para poder sacarlo con `sale()`. */
   private visitante: { id: string; nombre: string } | null = null;
   private n = 0;
@@ -93,6 +94,23 @@ export class PuertoChatFalso implements PuertoChat {
   alCambiarPresencia(cb: (e: PresenciaChat) => void): () => void {
     this.presencia.add(cb);
     return () => this.presencia.delete(cb);
+  }
+
+  alEscribir(cb: (e: EscrituraChat) => void): () => void {
+    this.escritura.add(cb);
+    return () => this.escritura.delete(cb);
+  }
+
+  /** Aqui escribo yo y no hay nadie al otro lado: no avisa a nadie. */
+  escribiendo(): void {}
+
+  /**
+   * Simula que alguien del guion (0 Hilario, 1 la Cocinera, 2 el Redactor)
+   * empieza o deja de escribir.
+   */
+  teclea(quien: number, escribe = true): void {
+    const p = GENTE[quien % GENTE.length]!;
+    for (const o of this.escritura) o({ usuarioId: p.id, nombre: p.nombre, avatar: p.avatar, escribe });
   }
 
   /** Simula que alguien entra en la conversacion sin escribir. */

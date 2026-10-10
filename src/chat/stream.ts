@@ -19,8 +19,20 @@ export interface CanalStream {
   on(evento: string, cb: (e: EventoStream) => void): { unsubscribe(): void };
   /** Opcional: los puertos de solo lectura no lo necesitan. */
   markRead?(): Promise<unknown>;
+  /** «Estoy escribiendo»: Stream manda `typing.start` como mucho cada 2 s. */
+  keystroke?(): Promise<unknown>;
+  /** «Ya no»: `typing.stop`. */
+  stopTyping?(): Promise<unknown>;
+  /** El cliente del canal: Stream devuelve también los avisos de escribir propios. */
+  getClient?(): { userID?: string };
   /** Lo rellena `watch()`: entre otras cosas, los miembros del canal. */
   state?: { members?: Record<string, MiembroStream> };
+  /**
+   * Los datos del canal, también de `watch()`: el nombre (`name`) en los de
+   * grupo. Sin declarar sus campos: cada versión de `stream-chat` los tipa
+   * a su manera.
+   */
+  data?: { readonly [campo: string]: unknown } | null;
 }
 
 export interface UsuarioStream {
@@ -137,6 +149,41 @@ export function puertoStream(canal: () => CanalStream | Promise<CanalStream>): P
     enviar: async (texto: string) => {
       const c = await vigilado();
       await c.sendMessage({ text: texto });
+      // Lo escrito ya está enviado: deja de salir «escribiendo» a los demás.
+      void c.stopTyping?.().catch(() => undefined);
+    },
+
+    escribiendo: () => {
+      void vigilado()
+        .then((c) => c.keystroke?.())
+        .catch(() => undefined);
+    },
+
+    // Quien empieza y deja de escribir. Stream da por terminado a quien lleva
+    // 7 s sin teclear (manda él mismo el `typing.stop`).
+    alEscribir: (cb) => {
+      const bajas: Array<() => void> = [];
+      let cancelado = false;
+
+      vigilado()
+        .then((c) => {
+          if (cancelado) return;
+          // Lo que escribo yo no sale como «escribiendo»: ya lo veo en la caja.
+          const yo = c.getClient?.().userID;
+          for (const [evento, escribe] of [['typing.start', true], ['typing.stop', false]] as const) {
+            const { unsubscribe } = c.on(evento, (e) => {
+              const id = e.user?.id;
+              if (id && id !== yo) cb({ usuarioId: id, nombre: e.user?.name, avatar: e.user?.avatar ?? null, escribe });
+            });
+            bajas.push(unsubscribe);
+          }
+        })
+        .catch(() => undefined);
+
+      return () => {
+        cancelado = true;
+        for (const b of bajas) b();
+      };
     },
 
     // Los miembros ya vienen con el canal: `watch()` los deja en su estado,
@@ -147,6 +194,12 @@ export function puertoStream(canal: () => CanalStream | Promise<CanalStream>): P
         const id = m.user?.id ?? m.user_id;
         return id ? [{ id, nombre: m.user?.name, avatar: m.user?.avatar ?? null }] : [];
       });
+    },
+
+    // dhcore llama a los chats de grupo como el grupo; los privados no tienen nombre.
+    titulo: async () => {
+      const nombre = (await vigilado()).data?.['name'];
+      return typeof nombre === 'string' && nombre.trim() ? nombre.trim() : null;
     },
 
     // Altas y bajas de miembros del canal: alguien entra o sale del grupo.

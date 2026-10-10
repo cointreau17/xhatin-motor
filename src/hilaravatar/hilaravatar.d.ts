@@ -90,4 +90,20 @@ export declare function aCodigo(config: Partial<ConfigAvatar> | null | undefined
 export declare function deCodigo(codigo: string | null | undefined): ConfigAvatar;
 export declare function aleatorio(semilla?: string | number): ConfigAvatar;
 export declare function expresionDeTexto(texto: string): string;
+/**
+ * Ajusta un fragmento a la cabeza elegida: `data-ajuste` → transform,
+ * `data-recorte="cara"` → recortado por la cara, `data-repaso="cara"` → el
+ * contorno de la cara. Con desplazamiento (giro del cómic), lo recortado se
+ * corre y el recorte no.
+ */
+export declare function ajustarACabeza(fragmento: string, cabeza: string, desplazamiento?: number): string;
+/** La barba en dos partes: el cuerpo (bajo la boca) y el bigote (sobre ella). */
+export declare function barbaPorPartes(id: string, cabeza: string, desplazamiento?: number): { cuerpo: string; bigote: string };
+/**
+ * La pieza tal como va en esa cabeza, sin ajustar todavía: las pegadas al
+ * borde de la cara (patillas) traen un dibujo por cabeza. '' si no existe.
+ */
+export declare function piezaDe(cat: string, id: string | undefined, cabeza: string): string;
+/** El `<clipPath id="dh-cara-<cabeza>">` de una cabeza, o '' si no tiene. */
+export declare function recorteDeCara(cabeza: string): string;
 export declare function definirElemento(nombre?: string): void;

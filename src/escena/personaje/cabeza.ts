@@ -19,7 +19,14 @@
  */
 
 import { DATOS } from '../../hilaravatar/piezas.js';
-import { normalizar, deCodigo } from '../../hilaravatar/hilaravatar.js';
+import {
+  ajustarACabeza,
+  barbaPorPartes,
+  deCodigo,
+  normalizar,
+  piezaDe,
+  recorteDeCara,
+} from '../../hilaravatar/hilaravatar.js';
 import type { ConfigAvatar } from '../../hilaravatar/hilaravatar.js';
 import type { DefExpresion, DefMarca, RanuraCara } from '../catalogo/tipos.js';
 
@@ -96,6 +103,11 @@ function pieza(cat: string, id: string | undefined): string {
   return (id && PIEZAS[cat]?.[id]) || '';
 }
 
+/** La pieza ajustada a la cabeza del personaje (ver `ajustarACabeza`). */
+function piezaEn(cabeza: string, cat: string, id: string | undefined): string {
+  return ajustarACabeza(piezaDe(cat, id, cabeza), cabeza);
+}
+
 /** Config de avatar desde un código, con cache (se pinta decenas de veces). */
 const configs = new Map<string, ConfigAvatar>();
 export function configDe(codigo: string): ConfigAvatar {
@@ -142,7 +154,15 @@ export function dibujarCabeza(config: ConfigAvatar, op: OpcionesCabeza): string 
   const px = Math.max(-1, Math.min(1, op.mirada.x)) * 7;
   const py = Math.max(-1, Math.min(1, op.mirada.y)) * 5;
 
+  const cabeza = piezas['cabeza'] ?? '';
   const ojos = moverPupilas(pieza('ojos', piezas['ojos']), px, py);
+
+  // La barba en dos partes: el cuerpo, antes que los ojos y la boca (que no
+  // los tape), y el bigote, después de la boca. El cuerpo se recorta por la
+  // cara, que no gira: por eso se le pasa el corrimiento en vez de envolverlo
+  // sin más.
+  const barba = barbaPorPartes(piezas['barba'] ?? '', cabeza, dxRasgos);
+  const recorte = barba.cuerpo.includes(`url(#dh-cara-${cabeza})`) ? recorteDeCara(cabeza) : '';
 
   let boca = pieza('boca', piezas['boca']);
   if (op.habla) {
@@ -168,18 +188,22 @@ export function dibujarCabeza(config: ConfigAvatar, op: OpcionesCabeza): string 
   // del busto; en un cuerpo entero quedarían flotando fuera del torso. El
   // café pasa a ser un prop que se sujeta (ver identidad.ts) y la chapa la
   // prende el cuerpo en el pecho (`chapaEnPecho`).
-  const extra = EXTRAS_DE_PECHO.has(piezas['extra'] ?? '') ? '' : pieza('extra', piezas['extra']);
+  const extra = EXTRAS_DE_PECHO.has(piezas['extra'] ?? '') ? '' : piezaEn(cabeza, 'extra', piezas['extra']);
 
+  // El mismo orden que el avatar (CAPAS en hilaravatar.js): la barba, debajo
+  // de ojos y boca; el bigote, encima de la boca, y la nariz, sobre todo.
   return [
-    pieza('pelo-tras', piezas['pelo-tras']),
+    recorte,
+    piezaEn(cabeza, 'pelo-tras', piezas['pelo-tras']),
     pieza('cabeza', piezas['cabeza']),
     marcasPiel ? `<g transform="translate(${dxRasgos} 0)">${marcasPiel}</g>` : '',
+    barba.cuerpo ? `<g transform="translate(${dxRasgos} 0)">${barba.cuerpo}</g>` : '',
     `<g class="dh-rasgos" transform="translate(${dxRasgos} 0)">${rasgos}</g>`,
+    `<g transform="translate(${dxRasgos} 0)">${boca}${barba.bigote}</g>`,
     `<g transform="translate(${dxNariz} 0)">${pieza('nariz', piezas['nariz'])}</g>`,
-    `<g transform="translate(${dxRasgos} 0)">${boca}${pieza('barba', piezas['barba'])}</g>`,
-    pieza('pelo', piezas['pelo']),
-    `<g transform="translate(${dxRasgos} 0)">${pieza('gafas', piezas['gafas'])}</g>`,
-    pieza('sombrero', piezas['sombrero']),
+    piezaEn(cabeza, 'pelo', piezas['pelo']),
+    `<g transform="translate(${dxRasgos} 0)">${piezaEn(cabeza, 'gafas', piezas['gafas'])}</g>`,
+    piezaEn(cabeza, 'sombrero', piezas['sombrero']),
     extra,
     marcas ? `<g transform="translate(${dxRasgos} 0)">${marcas}</g>` : '',
   ].join('');

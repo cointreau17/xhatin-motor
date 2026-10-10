@@ -72,6 +72,11 @@ export interface Composicion {
   globos: GloboColocado[];
   /** Texto para lectores de pantalla. */
   descripcion: string;
+  /**
+   * Algo se sale del marco (una onomatopeya que lo rompe, un globo que sube):
+   * quien pinta la viñeta no la tiene que recortar (`dh-vineta--desborda`).
+   */
+  desborda: boolean;
 }
 
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
@@ -122,6 +127,35 @@ function ambiente(v: Vineta): string {
     default:
       return '';
   }
+}
+
+/* -------------------------------------------------------------- impacto -- */
+
+/**
+ * El fondo de los momentos fuertes: rayos de tinta que salen de la cara de
+ * quien grita o se sorprende, sobre papel claro. Van en coordenadas del mundo,
+ * dentro de la cámara, así que salen de la cara se encuadre como se encuadre.
+ * Cada rayo es una cuña fina con su grosor y su arranque, siempre los mismos
+ * para la misma viñeta.
+ */
+function fondoImpacto(cx: number, cy: number, radio: number, semilla: number): string {
+  const n = 64;
+  const lejos = 2400;
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const azar = (k: number) => (((i + 1) * k + semilla) % 97) / 97;
+    const a = (Math.PI * 2 * i) / n + (azar(31) - 0.5) * 0.07;
+    const media = 0.006 + azar(53) * 0.016;
+    const arranque = radio * (1.05 + azar(71) * 0.6);
+    const punto = (ang: number, r: number) => `${f(cx + Math.cos(ang) * r)} ${f(cy + Math.sin(ang) * r)}`;
+    d += `M${punto(a, arranque)} L${punto(a - media, lejos)} L${punto(a + media, lejos)} Z `;
+  }
+  return (
+    `<g class="dh-escenario dh-impacto">` +
+    `<rect x="-1200" y="${TECHO_MUNDO - 800}" width="3600" height="2800" fill="#F6E7BE"/>` +
+    `<path d="${d}" fill="#1B1714" opacity="0.88"/>` +
+    `</g>`
+  );
 }
 
 /* ------------------------------------------------------------- props ------ */
@@ -356,16 +390,28 @@ function componer(v: Vineta, catalogo: Catalogo, op: OpcionesComposicion): Compo
   const globos = colocarGlobos(v.globos, layout.ancho, layout.alto, obst, { nombres, rotulo: v.rotulo });
   const globosSvg = globos.map((g) => dibujarGlobo(g, g.globo.id === 'rotulo' ? op.novedades === '*' : esNuevo(op, g.globo.id))).join('');
 
+  // Momento fuerte: el decorado se cambia por líneas de impacto desde la cara.
+  const quienImpacta = v.impacto && layout.personajes.find((c) => c.personaje.id === v.impacto!.sobre);
+  const fondo = quienImpacta
+    ? fondoImpacto(
+        quienImpacta.cara.x + quienImpacta.cara.ancho / 2,
+        quienImpacta.cara.y + quienImpacta.cara.alto / 2,
+        Math.max(quienImpacta.cara.ancho, quienImpacta.cara.alto) * 0.75,
+        semillaNum(v.id),
+      )
+    : escenario(esc0, v, uso);
+  const frente = esc0.frente && !uso && !quienImpacta ? `<g class="dh-frente">${esc0.frente}</g>` : '';
+
   const descripcion = describir(v, catalogo);
   let svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.ancho} ${layout.alto}" class="dh-vineta-svg" role="img" aria-label="${esc(descripcion)}" overflow="visible" style="--dh-tinta:#1B1714;--dh-papel:#F2E9D8;--dh-acento:#CF3A2B;--dh-boca:#A8402F;--dh-cristal:#8FB8C4">` +
     `<defs>${DATOS.defs}${DEFS_ESCENARIOS}<clipPath id="dh-clip"><rect x="0" y="0" width="${layout.ancho}" height="${layout.alto}"/></clipPath></defs>` +
     `<g clip-path="url(#dh-clip)">` +
     `<g class="${camaraClase}" ${camaraAttr}>` +
-    escenario(esc0, v, uso) +
+    fondo +
     ambiente(v) +
     items.map((i) => i.svg).join('') +
-    (esc0.frente && !uso ? `<g class="dh-frente">${esc0.frente}</g>` : '') +
+    frente +
     `</g>` +
     pantallaFx +
     `</g>` +
@@ -383,7 +429,8 @@ function componer(v: Vineta, catalogo: Catalogo, op: OpcionesComposicion): Compo
   const rotulo = uso?.estilo.fuentes?.rotulo;
   if (rotulo) svg = svg.split(`font-family="${FUENTE_ROTULO_EFECTOS}"`).join(`font-family="${rotulo.replace(/"/g, "'")}"`);
 
-  return { svg, layout, encuadre, globos, descripcion };
+  const desborda = globos.some((g) => g.fuera);
+  return { svg, layout, encuadre, globos, descripcion, desborda };
 }
 
 /** La letra que llevan escrita los efectos del catálogo (efectos.ts). */
@@ -414,8 +461,10 @@ export function describir(v: Vineta, catalogo: Catalogo): string {
   const quien = v.personajes
     .map((p) => `${p.nombre} (${catalogo.expresion(p.expresion).nombre.toLowerCase()})`)
     .join(', ');
+  // Sin las marcas de énfasis (`*así*`): un lector de pantalla las leería.
+  const limpio = (t: string) => t.replace(/\*([^*\s][^*]*)\*/g, '$1');
   const dicen = v.globos
-    .map((g) => (g.tipo === 'narracion' ? g.texto : `${g.autorNombre ?? ''}: «${g.texto}»`))
+    .map((g) => (g.tipo === 'narracion' ? limpio(g.texto) : `${g.autorNombre ?? ''}: «${limpio(g.texto)}»`))
     .join(' ');
   return `${v.rotulo ? v.rotulo + '. ' : ''}${sitio}. ${quien}. ${dicen}`.trim();
 }

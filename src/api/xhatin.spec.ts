@@ -152,6 +152,43 @@ describe('API de Xhatín', () => {
     expect(await falla.cliente.leerExisten([A], [])).toBeNull();
   });
 
+  it('el privado lo abre dhcore y devuelve el id del canal', async () => {
+    const { cliente, peticiones } = api({}, () => new Response(JSON.stringify({ canal: '!members-abc' })));
+    expect(await cliente.abrirPrivado(A.toUpperCase())).toEqual({ datos: '!members-abc', error: null });
+    expect(`${peticiones[0]!.init.method} ${peticiones[0]!.url}`).toBe(`POST https://api.prueba/xhatin/privado/${A}`);
+  });
+
+  it('si dhcore no deja abrir el privado, el error dice por qué', async () => {
+    const { cliente } = api({}, () => new Response(JSON.stringify({ message: 'Solo puedes hablar por privado con alguien de un grupo vuestro.' }), { status: 403 }));
+    expect(await cliente.abrirPrivado(A)).toEqual({ datos: null, error: 'Solo puedes hablar por privado con alguien de un grupo vuestro.' });
+    const { cliente: otro, peticiones } = api();
+    expect((await otro.abrirPrivado('no-es-uuid')).error).toBeTruthy();
+    expect(peticiones).toHaveLength(0);
+  });
+
+  it('denunciar manda el mensaje, el motivo y el comentario si lo hay', async () => {
+    const { cliente, peticiones } = api({}, () => new Response(JSON.stringify({ denuncia: 'd-1' }), { status: 201 }));
+    expect(await cliente.denunciar('m-1', 'acoso', '  me insulta ')).toEqual({ datos: true, error: null });
+    await cliente.denunciar('m-2', 'spam', '   ');
+    expect(peticiones[0]!.url).toBe('https://api.prueba/xhatin/denuncias');
+    expect(JSON.parse(peticiones[0]!.init.body as string)).toEqual({ mensaje: 'm-1', motivo: 'acoso', comentario: 'me insulta' });
+    expect(JSON.parse(peticiones[1]!.init.body as string)).toEqual({ mensaje: 'm-2', motivo: 'spam' });
+    expect(cabecera(peticiones[0]!, 'Content-Type')).toBe('application/json');
+  });
+
+  it('bloquear, desbloquear y leer los bloqueos', async () => {
+    const lista = [{ id: B, nombre: 'Beto', avatar: null }];
+    const { cliente, peticiones } = api({}, () => new Response(JSON.stringify({ bloqueados: lista })));
+    expect(await cliente.bloquear(B)).toEqual({ datos: lista, error: null });
+    expect(await cliente.desbloquear(B)).toEqual({ datos: lista, error: null });
+    expect(await cliente.leerBloqueos()).toEqual(lista);
+    expect(peticiones.map((p) => `${p.init.method ?? 'GET'} ${p.url}`)).toEqual([
+      `PUT https://api.prueba/xhatin/bloqueos/${B}`,
+      `DELETE https://api.prueba/xhatin/bloqueos/${B}`,
+      'GET https://api.prueba/xhatin/bloqueos',
+    ]);
+  });
+
   it('absoluta deja las URL absolutas como están', () => {
     const { cliente } = api();
     expect(cliente.absoluta('/xhatin/x.json')).toBe('https://api.prueba/xhatin/x.json');

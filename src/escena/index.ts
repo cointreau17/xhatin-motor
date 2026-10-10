@@ -34,7 +34,12 @@ export { LEXICO, EMOJIS, normalizar, compactar } from './interpretacion/lexico.j
 
 export { componerVineta, describir } from './composicion/compositor.js';
 export type { Composicion, OpcionesComposicion } from './composicion/compositor.js';
-export { usarMedidor, medidorCanvas, medirEstimado } from './composicion/globos.js';
+export { paginar } from './composicion/pagina.js';
+export { vinetaEscribiendo, textoEscribiendo } from './composicion/escribiendo.js';
+export type { QuienEscribe } from './composicion/escribiendo.js';
+export { componerPortada, numeroDeTira } from './composicion/portada.js';
+export type { DatosPortada } from './composicion/portada.js';
+export { usarMedidor, medidorCanvas, medirEstimado, olvidarMedidas, esEnfatica } from './composicion/globos.js';
 
 export type * from './estilos/tipos.js';
 export { CARICATURA } from './estilos/caricatura.js';

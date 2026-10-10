@@ -73,6 +73,18 @@ export interface ParticipanteChat {
   avatar?: string | null;
 }
 
+/**
+ * Alguien empieza o deja de escribir. Es lo que pinta al final de la tira su
+ * personaje tecleando en el móvil.
+ */
+export interface EscrituraChat {
+  usuarioId: string;
+  nombre?: string;
+  avatar?: string | null;
+  /** true al empezar a escribir; false al parar (o al enviar). */
+  escribe: boolean;
+}
+
 export interface PuertoChat {
   /** Los ultimos mensajes, en orden cronologico. */
   historial(limite?: number): Promise<MensajeChat[]>;
@@ -103,4 +115,20 @@ export interface PuertoChat {
    * saca con quien hablas de los autores de los mensajes que van llegando.
    */
   participantes?(): Promise<ParticipanteChat[]>;
+  /**
+   * OPCIONAL. Quien empieza y deja de escribir. El de Stream ya no cuenta lo
+   * mio; si otro puerto lo hace, lo quita quien pinta. Sin el, no sale la
+   * viñeta de «está escribiendo».
+   */
+  alEscribir?(cb: (evento: EscrituraChat) => void): () => void;
+  /**
+   * OPCIONAL. Avisa de que estoy escribiendo: llamarlo con cada tecla, que el
+   * puerto ya espacia los avisos. Al enviar, el aviso se apaga solo.
+   */
+  escribiendo?(): void;
+  /**
+   * OPCIONAL. El nombre de la conversación, si lo tiene: el chat de un grupo
+   * se llama como el grupo; un privado, no. Lo usa la portada de la tira.
+   */
+  titulo?(): Promise<string | null>;
 }

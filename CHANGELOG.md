@@ -1,5 +1,86 @@
 # Cambios
 
+## 0.12.0
+
+El cómic, a lo grande:
+
+- **La tira como página de cómic.** Viñetas de esquinas rectas y borde de
+  tinta, sin sombra, sobre una página con su trama: `.dh-pagina` con
+  `--dh-columnas`, `.dh-pagina__ancha` y `.dh-pagina--una` en vineta.css.
+  `paginar(tira, columnas)` cambia el formato de la viñeta de antes cuando
+  una fila se iba a quedar con hueco (y da siempre la misma copia, para no
+  recomponerla).
+- **Bocadillos con carácter.**
+  - El grito crece con la intensidad y, si es muy fuerte, tiembla.
+  - La onomatopeya va en amarillo con sombra de color y puede salirse del
+    marco.
+  - La narración va en cartela de esquina con sombra dura.
+  - Las palabras con énfasis van en negrita de rotulista: mayúsculas sueltas,
+    letras alargadas, `*asteriscos*` y palabras fuertes (`esEnfatica`).
+- **«Está escribiendo…» como viñeta viva.**
+  - El puerto avisa con `alEscribir`, y `escribiendo` lo dice al otro lado.
+    En Stream son `typing.start`/`typing.stop` y `keystroke`, y lo propio no
+    cuenta.
+  - El controlador lo lleva en `estado.escribiendo`, con `Escribiendo`, que
+    olvida a quien lleva `ESCRIBIENDO_MS` sin avisar. La app la usa también
+    en su parte nativa.
+  - `vinetaEscribiendo` pinta a quien teclea, con el móvil y un bocadillo de
+    pensamiento; `textoEscribiendo` lo dice en texto.
+- **Portada de la conversación.** `componerPortada` pinta la cabecera
+  XHATÍN, el título, el número, la fecha y el reparto con sus caras;
+  `numeroDeTira` da el número.
+  - El título es `estado.titulo`, el nombre del canal (`PuertoChat.titulo`):
+    en los chats de grupo, el del grupo.
+- **Momentos fuertes a lo grande.**
+  - El director marca `impacto` en la viñeta de un grito muy fuerte o de una
+    sorpresa, susto o furia intensos.
+  - El compositor pone ahí un fondo de rayos (`dh-impacto`) en vez del
+    decorado.
+  - En la tensión y el drama, la viñeta se tuerce (`.dh-vineta--tension`).
+- **Rotulación con fuentes de verdad.** Cada estilo dice sus `letras`: Comic
+  Neue y Bangers en «Jóvenes», Patrick Hand y Bangers en «Caricatura».
+  - `prepararFuentes(opcion, base)` las carga de la carpeta del proyecto
+    (`LETRAS`, licencia OFL), con la hoja de Google de respaldo donde la
+    había.
+  - Dice si hay que volver a medir, y olvida lo medido (`olvidarMedidas`).
+- `componerVineta` dice `desborda` cuando algo se sale del marco.
+- 26 tests nuevos (162 en total).
+
+## 0.11.0
+
+- HilarAvatar, mejor dibujado:
+  - las piezas se ajustan a cada cabeza (antes se pintaban igual en todas y
+    en las estrechas o anchas se salían, se metían en la cara o flotaban);
+  - patillas que siguen el borde de la cara y ya no tapan los ojos;
+  - barba completa que deja ver la boca;
+  - afro de rizos en vez de manchas;
+  - candado en aro, cresta de punta, trenza de gajos, rizos sin manchas,
+    coronilla, barba de tres días y diadema redibujadas.
+- Al pintar, la barba va debajo de ojos y boca y su bigote encima de la boca
+  (en el avatar y en la cabeza del cómic). El código de cada avatar no cambia.
+- Los dibujos, en `hilaravatar/` (manifiesto y un SVG por pieza), y
+  `npm run piezas` regenera `piezas.js`, que incluye ahora, por cabeza, su
+  contorno, los ajustes medidos y las piezas pegadas al borde
+  (`DATOS.caras`).
+- Nuevo en el API del avatar: `ajustarACabeza`, `barbaPorPartes`, `piezaDe` y
+  `recorteDeCara`.
+- Moderación y privados, para la app en las tiendas (y la web):
+  - API: `abrirPrivado` (`POST /xhatin/privado/<uuid>`: el privado lo crea
+    dhcore si compartís grupo y nadie ha bloqueado a nadie), `denunciar`
+    (`POST /xhatin/denuncias`), `leerBloqueos`, `bloquear` y `desbloquear`
+    (`/xhatin/bloqueos`), y `MOTIVOS_DENUNCIA`.
+  - `ControladorComic`: `ocultar(autores)` (y la opción `ocultos`) deja fuera
+    de la tira los mensajes de quien he bloqueado, también los que lleguen
+    después; `mensajesDe(viñeta)` da los mensajes de una viñeta, para el menú
+    de denunciar.
+  - La lista de conversaciones: `sinBloqueados` quita los privados con gente
+    bloqueada y, en los grupos, la vista previa de su último mensaje
+    (`MENSAJE_OCULTO`). Para eso `resumenDe` dice también `ultimoDe`.
+  - `NORMAS_XHATIN`: las normas del chat que hay que aceptar antes de usarlo
+    (Apple, 1.2), el mismo texto en la web y la app; `PerfilXhatin.normas`
+    dice si ya se aceptaron.
+- 13 tests nuevos (136 en total).
+
 ## 0.10.0
 
 - Xhatín enseña solo las conversaciones ya abiertas en Stream: un chat de

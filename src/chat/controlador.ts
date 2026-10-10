@@ -2,7 +2,8 @@ import { aCodigo, aleatorio, expresionDeTexto } from '../hilaravatar/hilaravatar
 import { Director } from '../escena/director/director.js';
 import type { Refinador } from '../escena/interpretacion/interprete.js';
 import type { Vineta } from '../escena/modelo.js';
-import type { AdjuntoChat, MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
+import { Escribiendo } from './escribiendo.js';
+import type { AdjuntoChat, EscrituraChat, MensajeChat, ParticipanteChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
 
 /**
  * Una viñeta del modo CLÁSICO (una por mensaje): lo caro está congelado.
@@ -48,6 +49,13 @@ export interface EstadoComic {
    * funciona con puertos que no implementan `participantes()`.
    */
   gente: ReadonlyMap<string, ParticipanteChat>;
+  /**
+   * Quién está escribiendo ahora, para pintar su viñeta viva al final de la
+   * tira. Va yo incluido si el puerto me cuenta: lo quita quien pinta.
+   */
+  escribiendo: readonly ParticipanteChat[];
+  /** El nombre de la conversación si lo tiene (el del grupo), para la portada. */
+  titulo: string | null;
 }
 
 export interface OpcionesControlador {
@@ -57,6 +65,8 @@ export interface OpcionesControlador {
    * leen al empezar cada escena (`conectar`, `cerrar`).
    */
   refinadores?: Refinador[];
+  /** Autores cuyos mensajes no se enseñan (a quien he bloqueado). Ver `ocultar`. */
+  ocultos?: Iterable<string>;
   /** Para los fallos que no impiden seguir (los participantes no llegan). */
   avisar?: (mensaje: string, error: unknown) => void;
 }
@@ -71,6 +81,8 @@ const VACIO: EstadoComic = {
   tira: [],
   novedades: null,
   gente: new Map(),
+  escribiendo: [],
+  titulo: null,
 };
 
 /**
@@ -110,6 +122,12 @@ export class ControladorComic {
   /** Baja de las suscripciones al puerto. `null` si no hay ninguna viva. */
   private baja: (() => void) | null = null;
   private bajaPresencia: (() => void) | null = null;
+  private bajaEscritura: (() => void) | null = null;
+  /** Quién escribe, con su caducidad. */
+  private readonly escritura = new Escribiendo(() => {
+    this.poner({ escribiendo: this.escritura.lista });
+    this.emitir();
+  });
   /** El último puerto y límite, para `reintentar()`. */
   private ultima: { puerto: PuertoChat; limite: number } | null = null;
 
@@ -128,8 +146,12 @@ export class ControladorComic {
    */
   private readonly respaldo = new Map<string, string>();
 
+  /** Autores bloqueados: sus mensajes no entran en la tira. */
+  private ocultos: ReadonlySet<string>;
+
   constructor(op: OpcionesControlador = {}) {
     this.refinadores = op.refinadores ?? [];
+    this.ocultos = new Set(op.ocultos ?? []);
     this.avisar = op.avisar ?? ((mensaje, error) => console.warn(`[ComicChat] ${mensaje}:`, error));
     this.director = new Director({ refinadores: this.refinadores });
   }
@@ -159,8 +181,16 @@ export class ControladorComic {
 
     const conexion = ++this.conexion;
     this.reiniciarEscena();
-    this.poner({ cargando: true, error: false, vinetas: [], gente: new Map() });
+    this.poner({ cargando: true, error: false, vinetas: [], gente: new Map(), titulo: null });
     this.emitir();
+
+    puerto.titulo?.()
+      .then((titulo) => {
+        if (conexion !== this.conexion || !titulo) return;
+        this.poner({ titulo });
+        this.emitir();
+      })
+      .catch((err) => this.avisar('no se ha podido leer el nombre de la conversación', err));
 
     // Quién está, aunque no haya escrito: en una conversación recién abierta
     // es lo único que dice con quién hablas. Si falla no se pierde nada, los
@@ -178,6 +208,10 @@ export class ControladorComic {
     this.bajaPresencia =
       puerto.alCambiarPresencia?.((evento) => {
         if (conexion === this.conexion) this.presencia(evento);
+      }) ?? null;
+    this.bajaEscritura =
+      puerto.alEscribir?.((evento) => {
+        if (conexion === this.conexion) this.escribe(evento);
       }) ?? null;
 
     try {
@@ -204,6 +238,9 @@ export class ControladorComic {
     this.baja = null;
     this.bajaPresencia?.();
     this.bajaPresencia = null;
+    this.bajaEscritura?.();
+    this.bajaEscritura = null;
+    this.olvidarEscritura();
   }
 
   /**
@@ -229,6 +266,7 @@ export class ControladorComic {
    * al subir, que no cambian lo último que se ha visto.
    */
   cargarHistorial(historial: readonly MensajeChat[], opciones: { animar?: boolean } = {}): void {
+    historial = historial.filter((m) => !this.ocultos.has(m.autorId));
     for (const m of historial) this.conocerAutor(m);
     this.poner({ vinetas: this.unir(historial.map((m) => this.aVineta(m)), this.estadoActual.vinetas) });
 
@@ -240,8 +278,11 @@ export class ControladorComic {
     this.emitir();
   }
 
-  /** Un mensaje que llega. Los repetidos se ignoran. */
+  /** Un mensaje que llega. Los repetidos y los de autores ocultos se ignoran. */
   anadir(mensaje: MensajeChat): void {
+    if (this.ocultos.has(mensaje.autorId)) return;
+    // Quien envía ha dejado de escribir, aunque el aviso aún no haya llegado.
+    this.dejaDeEscribir(mensaje.autorId);
     this.conocerAutor(mensaje);
     const vinetas = this.estadoActual.vinetas;
     if (!vinetas.some((v) => v.id === mensaje.id)) this.poner({ vinetas: [...vinetas, this.aVineta(mensaje)] });
@@ -251,6 +292,7 @@ export class ControladorComic {
 
   /** Alguien entra o sale sin escribir: el cómic lo dibuja. */
   presencia(evento: PresenciaChat): void {
+    if (this.ocultos.has(evento.usuarioId)) return;
     if (evento.tipo === 'entra') {
       this.conocer({ id: evento.usuarioId, nombre: evento.nombre, avatar: evento.avatar });
     } else if (this.estadoActual.gente.has(evento.usuarioId)) {
@@ -263,13 +305,57 @@ export class ControladorComic {
     this.emitir();
   }
 
+  /**
+   * Alguien empieza o deja de escribir (lo da el puerto, o a mano quien no lo
+   * tiene). Si no vuelve a avisar, deja de contar a los `ESCRIBIENDO_MS`.
+   */
+  escribe(evento: EscrituraChat): void {
+    const id = evento.usuarioId;
+    if (!id || this.ocultos.has(id)) return;
+    if (!this.escritura.avisa(evento, this.estadoActual.gente.get(id))) return;
+    this.poner({ escribiendo: this.escritura.lista });
+    this.emitir();
+  }
+
   /** Los miembros de la conversación, según quien los sepa (el puerto). */
   conocerParticipantes(participantes: readonly ParticipanteChat[]): void {
     for (const p of participantes) this.conocer(p, true);
     this.emitir();
   }
 
+  /**
+   * Deja de enseñar los mensajes de unos autores (a quien he bloqueado), y
+   * vuelve a enseñarlos al quitarlos de la lista. Lo que ya estaba en la tira
+   * se recompone sin ellos, sin animar nada. Para volver a ver los de alguien
+   * desbloqueado hay que volver a cargar la conversación: no se guardan.
+   */
+  ocultar(autores: Iterable<string>): void {
+    const nuevos = new Set(autores);
+    const iguales = nuevos.size === this.ocultos.size && [...nuevos].every((id) => this.ocultos.has(id));
+    if (iguales) return;
+    this.ocultos = nuevos;
+    for (const id of nuevos) this.dejaDeEscribir(id);
+    const vinetas = this.estadoActual.vinetas.filter((v) => !nuevos.has(v.autorId));
+    const antes = this.mensajesEscena.length;
+    this.mensajesEscena = this.mensajesEscena.filter((m) => !nuevos.has(m.autorId));
+    this.poner({ vinetas });
+    if (this.mensajesEscena.length !== antes) {
+      this.director.reconstruir(this.mensajesEscena);
+      this.publicar(null);
+    }
+    this.emitir();
+  }
+
   /* ---------------------------------------------------------- ayudas --- */
+
+  /**
+   * Los mensajes que cuenta una viñeta de la tira, en orden: para el menú de
+   * denunciar un mensaje o bloquear a su autor.
+   */
+  mensajesDe(v: Vineta): MensajeChat[] {
+    const ids = new Set(v.mensajes);
+    return this.mensajesEscena.filter((m) => ids.has(m.id));
+  }
 
   /**
    * La cara de alguien sin código de avatar: la determinista de su id.
@@ -300,6 +386,17 @@ export class ControladorComic {
   }
 
   /* ----------------------------------------------------------- privado --- */
+
+  /** Quita a alguien de los que escriben. Dice si estaba. No avisa. */
+  private dejaDeEscribir(id: string): boolean {
+    if (!this.escritura.quitar(id)) return false;
+    this.poner({ escribiendo: this.escritura.lista });
+    return true;
+  }
+
+  private olvidarEscritura(): void {
+    if (this.escritura.vaciar()) this.poner({ escribiendo: [] });
+  }
 
   private poner(parcial: Partial<EstadoComic>): void {
     this.estadoActual = { ...this.estadoActual, ...parcial };

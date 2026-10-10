@@ -13,6 +13,8 @@ export interface ResumenConversacion {
   titulo: string;
   /** El último mensaje, ya con «Tú: » si es mío. */
   ultimo: string | null;
+  /** Quién escribió el último mensaje (su id), o null si no hay. */
+  ultimoDe: string | null;
   /** Fecha del último mensaje (ISO). */
   fecha: string | null;
   /** Mensajes sin leer. */
@@ -86,10 +88,29 @@ export function resumenDe(canal: CanalResumible, yo: string): ResumenConversacio
     id: canal.id,
     titulo: nombre || nombreDeGente(demas.map((m) => m.user?.name || 'Alguien')),
     ultimo: texto && ultimo?.user?.id === yo ? `Tú: ${texto}` : texto,
+    ultimoDe: ultimo?.user?.id ?? null,
     fecha: ultimo?.created_at ? new Date(ultimo.created_at).toISOString() : null,
     noLeidos: canal.countUnread(),
     otros: conId.map((m) => m.id),
     avatares: Object.fromEntries(conId.map((m) => [m.id, m.avatar])),
     grupo: grupoDeCanal(canal.id),
   };
+}
+
+/** La vista previa de un mensaje de alguien bloqueado. */
+export const MENSAJE_OCULTO = 'Mensaje oculto';
+
+/**
+ * Las conversaciones sin lo de quien he bloqueado: fuera los privados con
+ * gente bloqueada (todos los demás lo están), y en los chats de grupo, que se
+ * quedan, sin la vista previa de su último mensaje si es suyo.
+ */
+export function sinBloqueados(
+  lista: readonly ResumenConversacion[],
+  bloqueados: ReadonlySet<string>,
+): ResumenConversacion[] {
+  if (!bloqueados.size) return [...lista];
+  return lista
+    .filter((c) => c.grupo !== null || !c.otros.length || c.otros.some((id) => !bloqueados.has(id)))
+    .map((c) => (c.ultimoDe && bloqueados.has(c.ultimoDe) ? { ...c, ultimo: MENSAJE_OCULTO } : c));
 }

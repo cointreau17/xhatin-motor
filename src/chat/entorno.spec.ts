@@ -14,6 +14,7 @@ const c = (id: string, otros: string[], grupo: string | null = null): ResumenCon
   id,
   titulo: id,
   ultimo: null,
+  ultimoDe: null,
   fecha: null,
   noLeidos: 0,
   otros,

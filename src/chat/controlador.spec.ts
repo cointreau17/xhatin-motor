@@ -7,6 +7,7 @@ import { aCodigo, aleatorio } from '../hilaravatar/hilaravatar.js';
 import { Director } from '../escena/director/director.js';
 import type { Refinador } from '../escena/interpretacion/interprete.js';
 import { ControladorComic, type EstadoComic } from './controlador.js';
+import { ESCRIBIENDO_MS } from './escribiendo.js';
 import { PuertoChatFalso } from './puerto-falso.js';
 import type { MensajeChat, PresenciaChat, PuertoChat } from './puerto-chat.js';
 
@@ -235,6 +236,88 @@ describe('ControladorComic', () => {
     const ultimos = await puerto.historial(2);
     const antes = await puerto.historialAnterior(ultimos[0]!.id, 5);
     expect(antes.map((m) => m.id)).toEqual(['falso-0', 'falso-1']);
+  });
+
+  it('los mensajes de quien he bloqueado no entran en la tira, ni ahora ni después', async () => {
+    const c = new ControladorComic({ ocultos: ['u-beto'] });
+    const m = puertoManual();
+    await conectado(c, m);
+    expect(c.estado.vinetas.map((v) => v.id)).toEqual(['m1', 'm3']);
+    expect(c.estado.tira.flatMap((v) => v.mensajes)).toEqual(['m1', 'm3']);
+
+    m.recibir(msg('m4', 'Otra cosa', 'u-beto', 3));
+    m.presencia({ tipo: 'entra', usuarioId: 'u-beto', nombre: 'Beto', fecha: new Date(T0 + 4 * 60_000) });
+    expect(c.estado.vinetas.map((v) => v.id)).toEqual(['m1', 'm3']);
+  });
+
+  it('bloquear a alguien con la conversación abierta le quita de la tira al momento', async () => {
+    const c = new ControladorComic();
+    await conectado(c);
+    const avisos: EstadoComic[] = [];
+    c.suscribir((e) => avisos.push(e));
+
+    c.ocultar(['u-beto']);
+    expect(c.estado.vinetas.map((v) => v.id)).toEqual(['m1', 'm3']);
+    expect(c.estado.tira).toHaveLength(tiraDe([HISTORIAL[0]!, HISTORIAL[2]!]).length);
+    expect(c.estado.tira.flatMap((v) => v.mensajes)).toEqual(['m1', 'm3']);
+    // Nada se anima: no es nuevo, es lo que había sin él.
+    expect(c.estado.novedades).toBeNull();
+    expect(avisos).toHaveLength(1);
+
+    // La misma lista otra vez no cambia nada.
+    c.ocultar(['u-beto']);
+    expect(avisos).toHaveLength(1);
+  });
+
+  it('da los mensajes de cada viñeta, para denunciar uno', async () => {
+    const c = new ControladorComic();
+    await conectado(c);
+    const todos = c.estado.tira.flatMap((v) => c.mensajesDe(v).map((m) => m.id));
+    expect(todos).toEqual(['m1', 'm2', 'm3']);
+    expect(c.mensajesDe(c.estado.tira[0]!)[0]).toMatchObject({ id: 'm1', autorId: 'u-ana', texto: 'Hola Beto, ¿qué tal?' });
+  });
+
+  it('quién está escribiendo: entra al empezar y sale al parar, al enviar o al cabo de un rato', async () => {
+    vi.useFakeTimers();
+    try {
+      const c = new ControladorComic({ ocultos: ['u-malo'] });
+      c.escribe({ usuarioId: 'u-ana', nombre: 'Ana', escribe: true });
+      c.escribe({ usuarioId: 'u-beto', nombre: 'Beto', escribe: true });
+      c.escribe({ usuarioId: 'u-malo', nombre: 'Malo', escribe: true });
+      expect(c.estado.escribiendo.map((p) => p.id)).toEqual(['u-ana', 'u-beto']);
+
+      // Beto para; Ana envía su mensaje.
+      c.escribe({ usuarioId: 'u-beto', escribe: false });
+      c.anadir(msg('m9', 'ya está', 'u-ana', 9));
+      expect(c.estado.escribiendo).toEqual([]);
+
+      // Sin noticias, se da por terminado.
+      c.escribe({ usuarioId: 'u-ana', nombre: 'Ana', escribe: true });
+      vi.advanceTimersByTime(ESCRIBIENDO_MS + 1);
+      expect(c.estado.escribiendo).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('el nombre de la conversación, si el puerto lo da, y el de antes no se queda', async () => {
+    const c = new ControladorComic();
+    const m = puertoManual();
+    await conectado(c, { ...m, puerto: { ...m.puerto, titulo: () => Promise.resolve('Los del cierre') } });
+    expect(c.estado.titulo).toBe('Los del cierre');
+    await conectado(c);
+    expect(c.estado.titulo).toBeNull();
+  });
+
+  it('el puerto falso dice quién escribe', async () => {
+    const c = new ControladorComic();
+    const puerto = new PuertoChatFalso();
+    await c.conectar(puerto);
+    puerto.teclea(1);
+    expect(c.estado.escribiendo.map((p) => p.nombre)).toEqual(['La Cocinera']);
+    puerto.teclea(1, false);
+    expect(c.estado.escribiendo).toEqual([]);
+    c.cerrar();
   });
 
   it('funciona con el puerto falso', async () => {

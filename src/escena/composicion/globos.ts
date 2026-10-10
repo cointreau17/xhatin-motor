@@ -19,10 +19,50 @@
 
 import type { Globo, TipoGlobo } from '../modelo.js';
 import type { Caja, Punto } from '../personaje/esqueleto.js';
+import { LEXICO, compactar, normalizar } from '../interpretacion/lexico.js';
 
 const TINTA = 'var(--dh-tinta, #1B1714)';
 const FONDO_GLOBO = '#FFFCF3';
-const FONDO_CARTELA = '#F0DDA8';
+/** Las cartelas del narrador, en el amarillo de las cajas de texto clásicas. */
+const FONDO_CARTELA = '#F4D67A';
+/** Las onomatopeyas: relleno mostaza y sombra en rojo de prensa. */
+const RELLENO_SONIDO = '#F2C14E';
+const SOMBRA_SONIDO = 'var(--dh-acento, #CF3A2B)';
+/** Cuánto se puede salir una onomatopeya del marco, por cada lado. */
+const FUERA_SONIDO = 40;
+
+/* ------------------------------------------------- negritas de rotulista -- */
+
+/** Las palabras fuertes del léxico (una sola palabra y no muy corta). */
+const ENFATICAS: ReadonlySet<string> = new Set(
+  (['sorpresa', 'enfado', 'entusiasmo', 'insulto', 'miedo', 'celebrar', 'felicitacion', 'risa', 'intensificador'] as const)
+    .flatMap((c) => LEXICO[c])
+    .filter((p) => !p.includes(' ') && p.length >= 4)
+    .map(compactar),
+);
+
+/** Una palabra entre asteriscos (`*así*`), que es como se marca en un chat. */
+const ENTRE_ASTERISCOS = /^\*([^*]+)\*([.,;:!?¡¿…]*)$/;
+
+/** La palabra tal como se dibuja: sin los asteriscos de énfasis. */
+export function sinMarcas(palabra: string): string {
+  const m = ENTRE_ASTERISCOS.exec(palabra);
+  return m ? m[1]! + m[2]! : palabra;
+}
+
+/**
+ * Si un rotulista la pondría en negrita: en mayúsculas cuando el resto del
+ * globo no lo está, con letras alargadas («siiii», «noooo»), entre asteriscos
+ * o de las fuertes del léxico («increíble», «harto», «brutal»).
+ */
+export function esEnfatica(palabra: string, todoMayus = false): boolean {
+  if (ENTRE_ASTERISCOS.test(palabra)) return true;
+  const letras = palabra.replace(/[^\p{L}]/gu, '');
+  if (letras.length < 2) return false;
+  if (!todoMayus && letras === letras.toUpperCase() && letras !== letras.toLowerCase()) return true;
+  if (/(\p{L})\1\1/u.test(letras.toLowerCase())) return true;
+  return ENFATICAS.has(compactar(normalizar(letras)));
+}
 
 export const FUENTE_COMIC = "'Comic Neue','Comic Sans MS','Chalkboard SE','Comic Relief','Segoe Print',ui-rounded,sans-serif";
 export const FUENTE_ROTULO = "'Bangers','Impact','Haettenschweiler','Arial Black',sans-serif";
@@ -113,11 +153,19 @@ export const medirEstimado: MedirTexto = (texto, tam, negrita) => {
   return w * tam * (negrita ? 1.07 : 1);
 };
 
-let medidor: MedirTexto = medirEstimado;
+let medidor: MedirTexto & { olvidar?: () => void } = medirEstimado;
 
 /** Instala un medidor exacto (lo hace el componente en el navegador). */
 export function usarMedidor(m: MedirTexto | null): void {
   medidor = m ?? medirEstimado;
+}
+
+/**
+ * Olvida lo medido: al cargar una letra nueva, lo que se midió con la de
+ * respaldo ya no vale (la caché va por nombre de letra, que es el mismo).
+ */
+export function olvidarMedidas(): void {
+  medidor.olvidar?.();
 }
 
 /** Medidor exacto basado en canvas, para el navegador. */
@@ -126,17 +174,21 @@ export function medidorCanvas(): MedirTexto | null {
   const ctx = document.createElement('canvas').getContext('2d');
   if (!ctx) return null;
   const cache = new Map<string, number>();
-  return (texto, tam, negrita, fuente) => {
-    const clave = `${tam}|${negrita}|${fuente}|${texto}`;
-    let w = cache.get(clave);
-    if (w === undefined) {
-      ctx.font = `${negrita ? 'bold ' : ''}${tam}px ${fuente}`;
-      w = ctx.measureText(texto).width;
-      if (cache.size > 4000) cache.clear();
-      cache.set(clave, w);
-    }
-    return w;
-  };
+  const medir: MedirTexto & { olvidar: () => void } = Object.assign(
+    (texto: string, tam: number, negrita: boolean, fuente: string) => {
+      const clave = `${tam}|${negrita}|${fuente}|${texto}`;
+      let w = cache.get(clave);
+      if (w === undefined) {
+        ctx.font = `${negrita ? 'bold ' : ''}${tam}px ${fuente}`;
+        w = ctx.measureText(texto).width;
+        if (cache.size > 4000) cache.clear();
+        cache.set(clave, w);
+      }
+      return w;
+    },
+    { olvidar: () => cache.clear() },
+  );
+  return medir;
 }
 
 interface Estilo {
@@ -148,6 +200,12 @@ interface Estilo {
   anchoMax: number;
   padX: number;
   padY: number;
+  /**
+   * Las palabras con énfasis van en negrita (`esEnfatica`). Lo que ya va
+   * entero en negrita (gritos, cartelas) no lo necesita. `todoMayus`: el
+   * texto está entero en mayúsculas y eso, por sí solo, no es énfasis.
+   */
+  enfasis?: { todoMayus: boolean };
 }
 
 /**
@@ -191,9 +249,23 @@ function estiloBase(tipo: TipoGlobo, anchoVineta: number, soloEmoji: boolean, va
   }
 }
 
+/**
+ * Lo que mide una línea, palabra a palabra: las de énfasis van en negrita, que
+ * es más ancha. Las marcas de énfasis (`*así*`) no se dibujan y no cuentan.
+ */
+export function anchoDeLinea(linea: string, e: Estilo): number {
+  const palabras = linea.split(' ').filter(Boolean);
+  if (!palabras.length) return 0;
+  const espacio = medidor(' ', e.tam, e.negrita, e.fuente);
+  return palabras.reduce(
+    (total, p) => total + medidor(sinMarcas(p), e.tam, e.negrita || (!!e.enfasis && esEnfatica(p, e.enfasis.todoMayus)), e.fuente),
+    espacio * (palabras.length - 1),
+  );
+}
+
 /** Parte el texto en líneas que quepan en `ancho`. Parte palabras kilométricas. */
 export function partirLineas(texto: string, e: Estilo, ancho: number): string[] {
-  const medir = (t: string) => medidor(t, e.tam, e.negrita, e.fuente);
+  const medir = (t: string) => anchoDeLinea(t, e);
   const palabras = texto.split(/\s+/).filter(Boolean);
   const lineas: string[] = [];
   let actual = '';
@@ -235,6 +307,8 @@ export interface GloboColocado {
   estilo: Estilo;
   cola: { base: Punto; punta: Punto } | null;
   nombre: string | null;
+  /** Se sale del marco (una onomatopeya que lo rompe, o un globo que sube). */
+  fuera?: boolean;
 }
 
 const solapa = (a: Caja, b: Caja) =>
@@ -246,19 +320,23 @@ function medirGlobo(g: Globo, anchoVineta: number, escalaFuente: number, conNomb
   const soloEmoji = /^[\p{Extended_Pictographic}\u200d\ufe0f\s]+$/u.test(g.texto);
   const largo = g.texto.length > 140 && (g.tipo === 'dialogo' || g.tipo === 'pregunta' || g.tipo === 'pensamiento' || g.tipo === 'susurro');
   const e0 = estiloDe(g.tipo, anchoVineta, soloEmoji, varios, largo);
-  const e = { ...e0, tam: Math.round(e0.tam * escalaFuente) };
+  // Según la intensidad: el grito crece y la onomatopeya, más (va gigante).
+  const fuerza = Math.min(1, Math.max(0, g.intensidad));
+  const crece = g.tipo === 'grito' ? 1 + 0.15 * Math.max(0, fuerza * 2 - 1) : g.tipo === 'sonido' ? (64 + 52 * fuerza) / e0.tam : 1;
+  const e: Estilo = { ...e0, tam: Math.round(e0.tam * crece * escalaFuente) };
   let texto = e.mayus ? g.texto.toUpperCase() : g.texto;
+  if (!e.negrita && !soloEmoji) e.enfasis = { todoMayus: texto === texto.toUpperCase() };
   let lineas = partirLineas(texto, e, e.anchoMax);
   // Demasiado largo: se recorta. El texto entero sigue en el aria-label.
   const maxLineas = g.tipo === 'narracion' ? 3 : largo ? 12 : 7;
   if (lineas.length > maxLineas) {
     lineas = lineas.slice(0, maxLineas);
     let ultima = lineas[maxLineas - 1]!;
-    while (ultima.length > 1 && medidor(ultima + '…', e.tam, e.negrita, e.fuente) > e.anchoMax) ultima = ultima.slice(0, -1);
+    while (ultima.length > 1 && anchoDeLinea(ultima + '…', e) > e.anchoMax) ultima = ultima.slice(0, -1);
     lineas[maxLineas - 1] = ultima.replace(/\s+\S*$/, '') + '…';
     texto = lineas.join(' ');
   }
-  const anchoTexto = Math.max(...lineas.map((l) => medidor(l, e.tam, e.negrita, e.fuente)));
+  const anchoTexto = Math.max(...lineas.map((l) => anchoDeLinea(l, e)));
   const altoLinea = e.tam * 1.18;
   const nombreAlto = conNombre ? 20 : 0;
   const anchoNombre = conNombre ? medidor((g.autorNombre ?? '').toUpperCase(), 16, true, fuentes.dialogo) : 0;
@@ -381,19 +459,24 @@ export function colocarGlobos(
   }
 
   const colocados: GloboColocado[] = [];
-  let y = MARGEN - subida;
+  // La cartela del narrador va pegada a la esquina, como en los cómics.
+  const abreCartela = filas[0]?.globos[0]?.g.tipo === 'narracion';
+  let y = abreCartela && subida === 0 ? 0 : MARGEN - subida;
   for (const fila of filas) {
     // Centrado sobre el hablante, empujando a la derecha para no solapar.
     const xs: number[] = [];
     let derecha = MARGEN - hueco();
     for (const { g, m, xHablante } of fila.globos) {
-      const ideal = g.tipo === 'narracion' ? MARGEN : xHablante - m.ancho / 2;
-      const x = Math.max(ideal, derecha + hueco(), MARGEN);
+      const cartela = g.tipo === 'narracion';
+      const ideal = cartela ? 0 : xHablante - m.ancho / 2;
+      // La primera cartela de la fila, a ras del borde; lo demás, con margen.
+      const minimo = cartela && !xs.length ? 0 : MARGEN;
+      const x = Math.max(ideal, xs.length ? derecha + hueco() : minimo, minimo);
       xs.push(x);
       derecha = x + m.ancho;
     }
     const exceso = derecha - (anchoV - MARGEN);
-    if (exceso > 0) for (let i = 0; i < xs.length; i++) xs[i] = Math.max(MARGEN, xs[i]! - exceso);
+    if (exceso > 0) for (let i = 0; i < xs.length; i++) xs[i] = Math.max(i === 0 && fila.globos[0]!.g.tipo === 'narracion' ? 0 : MARGEN, xs[i]! - exceso);
     // Un poco de escalonado: el segundo globo de la fila, algo más bajo.
     fila.globos.forEach(({ g, m }, i) => {
       // Baja como mucho hasta casi el hueco con la fila siguiente (8 con los
@@ -427,6 +510,7 @@ export function colocarGlobos(
 function crearColocado(g: Globo, caja: Caja, m: Medida, obst: Obstaculos, anchoV: number, altoV: number, nombres: boolean): GloboColocado {
   const hablante = g.autorId ? obst.hablantes[g.autorId] : undefined;
   const conNombre = nombres && g.tipo !== 'narracion' && g.tipo !== 'sonido' && !!g.autorNombre;
+  const fuera = caja.x < 0 || caja.y < 0 || caja.x + caja.ancho > anchoV || caja.y + caja.alto > altoV;
   return {
     globo: g,
     caja,
@@ -434,6 +518,7 @@ function crearColocado(g: Globo, caja: Caja, m: Medida, obst: Obstaculos, anchoV
     estilo: m.e,
     cola: hablante && g.tipo !== 'narracion' && g.tipo !== 'sonido' ? calcularCola(caja, hablante, anchoV, altoV) : null,
     nombre: conNombre ? (g.autorNombre ?? null) : null,
+    ...(fuera ? { fuera: true } : {}),
   };
 }
 
@@ -470,9 +555,13 @@ function buscarEnRejilla(
     if (g.tipo === 'sonido' && hablante) ideal = { x: hablante.coronilla.x + (hablante.coronilla.x < anchoV / 2 ? 110 : -110), y: hablante.coronilla.y + 10 };
 
     // Puede subir por encima del marco hasta `desborde`, pagando por ello:
-    // solo se sale si dentro no hay sitio sin tapar una cara.
-    for (let y = MARGEN - disposicion.desborde; y <= altoV - MARGEN - h; y += 10) {
-      for (let x = MARGEN; x <= anchoV - MARGEN - w; x += 10) {
+    // solo se sale si dentro no hay sitio sin tapar una cara. Las
+    // onomatopeyas, en cambio, rompen el borde por cualquier lado y gratis:
+    // es lo que hacen en un cómic.
+    const sonido = g.tipo === 'sonido';
+    const fuera = sonido ? FUERA_SONIDO : 0;
+    for (let y = MARGEN - Math.max(disposicion.desborde, fuera); y <= altoV - MARGEN - h + fuera; y += 10) {
+      for (let x = MARGEN - fuera; x <= anchoV - MARGEN - w + fuera; x += 10) {
         const c = { x, y, ancho: w, alto: h };
         let coste = 0;
         for (const cara of obst.caras) {
@@ -484,7 +573,7 @@ function buscarEnRejilla(
           if (s) coste += s * 80 + 20000;
         }
         for (const cuerpo of obst.cuerpos) coste += solapa(c, cuerpo) * 0.35;
-        if (y < MARGEN) coste += (MARGEN - y) * 40;
+        if (y < MARGEN && !sonido) coste += (MARGEN - y) * 40;
         coste += Math.abs(x + w / 2 - ideal.x) * 1.4 + Math.abs(y + h / 2 - ideal.y) * 0.7 + y * 0.6;
         // Orden de lectura respecto a los globos anteriores.
         for (const previo of anteriores) {
@@ -626,9 +715,28 @@ function colaPath(base: Punto, punta: Punto, ancho: number): string {
   return `M${f(base.x - px)} ${f(base.y - py)} Q${f(c.x)} ${f(c.y)} ${f(punta.x)} ${f(punta.y)} Q${f(c.x + px * 0.4)} ${f(c.y + py * 0.4)} ${f(base.x + px)} ${f(base.y + py)} Z`;
 }
 
+/** Una línea del globo, con las palabras de énfasis en negrita. */
+function lineaConEnfasis(linea: string, e: Estilo): string {
+  if (!e.enfasis) return esc(linea);
+  const { todoMayus } = e.enfasis;
+  return linea
+    .split(' ')
+    .map((p) => (esEnfatica(p, todoMayus) ? `<tspan font-weight="700">${esc(sinMarcas(p))}</tspan>` : esc(p)))
+    .join(' ');
+}
+
+/** Giro de una onomatopeya: siempre el mismo para el mismo globo. */
+function giroDe(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  const grados = 5 + (h % 8);
+  return h % 2 ? grados : -grados;
+}
+
 export function dibujarGlobo(gc: GloboColocado, nuevo: boolean): string {
   const { globo: g, caja, estilo: e, lineas, cola } = gc;
-  const clases = `dh-globo dh-globo--${g.tipo}${nuevo ? ' dh-nuevo' : ''}`;
+  const tiembla = g.tipo === 'grito' && g.intensidad >= 0.75;
+  const clases = `dh-globo dh-globo--${g.tipo}${tiembla ? ' dh-globo--tiembla' : ''}${nuevo ? ' dh-nuevo' : ''}`;
   const origen = cola ? `${f(cola.punta.x)}px ${f(cola.punta.y)}px` : `${f(caja.x)}px ${f(caja.y)}px`;
   const altoLinea = e.tam * 1.18;
   const offNombre = gc.nombre ? 20 : 0;
@@ -642,7 +750,7 @@ export function dibujarGlobo(gc: GloboColocado, nuevo: boolean): string {
 
   const texto = (fill: string, extra = '') =>
     `<text x="${f(cx)}" y="${f(primeraLinea)}" text-anchor="middle" ${estiloTexto} fill="${fill}" ${extra}>` +
-    lineas.map((l, i) => `<tspan x="${f(cx)}" dy="${i === 0 ? 0 : f(altoLinea)}">${esc(l)}</tspan>`).join('') +
+    lineas.map((l, i) => `<tspan x="${f(cx)}" dy="${i === 0 ? 0 : f(altoLinea)}">${lineaConEnfasis(l, e)}</tspan>`).join('') +
     `</text>`;
 
   const nombre = gc.nombre
@@ -650,15 +758,24 @@ export function dibujarGlobo(gc: GloboColocado, nuevo: boolean): string {
     : '';
 
   if (g.tipo === 'sonido') {
+    // Gigante, inclinada y con sombra: el «¡ZAS!» de un cómic, no un texto.
+    const cy = caja.y + caja.alto / 2;
+    const grueso = Math.max(7, e.tam / 7);
+    const desplaza = Math.max(4, e.tam / 14);
     return (
-      `<g class="${clases}" style="transform-origin:${f(cx)}px ${f(caja.y + caja.alto / 2)}px">` +
-      `<g transform="rotate(-7 ${f(cx)} ${f(caja.y + caja.alto / 2)})">${texto('var(--dh-acento, #CF3A2B)', `stroke="${TINTA}" stroke-width="7" paint-order="stroke" stroke-linejoin="round"`)}</g></g>`
+      `<g class="${clases}" style="transform-origin:${f(cx)}px ${f(cy)}px">` +
+      `<g transform="rotate(${giroDe(g.id)} ${f(cx)} ${f(cy)})">` +
+      `<g transform="translate(${f(desplaza)} ${f(desplaza)})">${texto(SOMBRA_SONIDO, `stroke="${TINTA}" stroke-width="${f(grueso)}" paint-order="stroke" stroke-linejoin="round"`)}</g>` +
+      texto(RELLENO_SONIDO, `stroke="${TINTA}" stroke-width="${f(grueso)}" paint-order="stroke" stroke-linejoin="round" letter-spacing="2"`) +
+      `</g></g>`
     );
   }
 
   if (g.tipo === 'narracion') {
+    // La caja amarilla del narrador, con su sombra dura.
     return (
       `<g class="${clases}">` +
+      `<rect x="${f(caja.x + 4)}" y="${f(caja.y + 4)}" width="${f(caja.ancho)}" height="${f(caja.alto)}" fill="${TINTA}" opacity="0.85"/>` +
       `<rect x="${f(caja.x)}" y="${f(caja.y)}" width="${f(caja.ancho)}" height="${f(caja.alto)}" fill="${FONDO_CARTELA}" stroke="${TINTA}" stroke-width="4"/>` +
       texto(TINTA, 'letter-spacing="0.5"') +
       `</g>`

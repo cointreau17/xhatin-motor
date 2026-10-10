@@ -29,14 +29,14 @@ export type {
 
 export * from './chat/index.js';
 
-export { crearApiXhatin } from './api/xhatin.js';
+export { crearApiXhatin, MOTIVOS_DENUNCIA } from './api/xhatin.js';
 export type {
-  ApiXhatin, ConfigApiXhatin, FotoNativa, IdEstilo, MiCaricatura,
-  PerfilXhatin, PersonajePublico, ResultadoCaricatura,
+  ApiXhatin, Bloqueado, ConfigApiXhatin, FotoNativa, IdEstilo, MiCaricatura,
+  MotivoDenuncia, PerfilXhatin, PersonajePublico, Resultado, ResultadoCaricatura,
 } from './api/xhatin.js';
 
 export {
-  ESTILOS, ESTILO_POR_DEFECTO, opcionDe, prepararFuentes,
+  ESTILOS, ESTILO_POR_DEFECTO, LETRAS, opcionDe, prepararFuentes,
   cargarCaricatura, conCaricaturas, repartir, usoDe,
 } from './estilos/catalogo.js';
-export type { OpcionEstilo } from './estilos/catalogo.js';
+export type { Letra, OpcionEstilo } from './estilos/catalogo.js';

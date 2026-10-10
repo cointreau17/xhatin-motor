@@ -17,6 +17,11 @@ import type { Existen } from '../chat/entorno.js';
  *   DELETE /xhatin/caricatura              borrarla
  *   POST   /xhatin/interpretar             el refinador de IA
  *   GET    /xhatin/existen                 qué usuarios y grupos conoce este entorno
+ *   POST   /xhatin/privado/<uuid>          abrir el chat privado con alguien
+ *   POST   /xhatin/denuncias               denunciar un mensaje
+ *   GET    /xhatin/bloqueos                a quién he bloqueado
+ *   PUT    /xhatin/bloqueos/<uuid>         bloquear a alguien
+ *   DELETE /xhatin/bloqueos/<uuid>         desbloquearle
  *
  * No sabe de dónde salen la URL ni la sesión: se las da quien lo crea. La web
  * (xhatin) las lee de DhPortero, que es como el shell las comparte con sus
@@ -38,6 +43,11 @@ export interface PersonajePublico {
 export interface PerfilXhatin {
   estilo: IdEstilo | null;
   personaje: string | null;
+  /**
+   * Si ha aceptado las normas del chat (NORMAS_XHATIN). Para aceptarlas,
+   * `guardarMiPerfil({ normas: true })`; no se pueden «desaceptar».
+   */
+  normas?: boolean;
   /** Manifiesto de su caricatura propia, si la tiene lista (ruta de la API). */
   caricatura?: string;
 }
@@ -71,6 +81,34 @@ export interface FotoNativa {
 /** El estado de la caricatura tras una acción, o el error para enseñarlo. */
 export interface ResultadoCaricatura {
   caricatura: MiCaricatura | null;
+  error: string | null;
+}
+
+/**
+ * Por qué se denuncia un mensaje, con el texto para enseñarlo. Son los mismos
+ * que acepta dhcore (XhatinDenuncia::MOTIVOS).
+ */
+export const MOTIVOS_DENUNCIA = {
+  spam: 'Spam o publicidad',
+  acoso: 'Acoso o insultos',
+  odio: 'Odio o discriminación',
+  sexual: 'Contenido sexual',
+  violencia: 'Violencia o amenazas',
+  otro: 'Otro motivo',
+} as const;
+export type MotivoDenuncia = keyof typeof MOTIVOS_DENUNCIA;
+
+/** Alguien a quien he bloqueado. */
+export interface Bloqueado {
+  id: string;
+  nombre: string;
+  /** Su código HilarAvatar, o null si no tiene. */
+  avatar: string | null;
+}
+
+/** Lo que devuelve una acción que puede fallar con un mensaje para enseñar. */
+export interface Resultado<T> {
+  datos: T | null;
   error: string | null;
 }
 
@@ -115,6 +153,20 @@ export interface ApiXhatin {
    * dónde está el API: entonces el chat sigue con las reglas.
    */
   refinador(): Refinador | null;
+  /**
+   * El chat privado con alguien: el id de su canal de Stream. Lo crea dhcore
+   * si compartís un grupo y ninguno ha bloqueado al otro; si no, el error dice
+   * por qué.
+   */
+  abrirPrivado(usuario: string): Promise<Resultado<string>>;
+  /** Denuncia un mensaje (su id en Stream). Repetir la misma denuncia no suma. */
+  denunciar(mensaje: string, motivo: MotivoDenuncia, comentario?: string): Promise<Resultado<true>>;
+  /** A quién he bloqueado; null si no se puede saber. */
+  leerBloqueos(): Promise<Bloqueado[] | null>;
+  /** Bloquea a alguien. Devuelve la lista ya con él. */
+  bloquear(usuario: string): Promise<Resultado<Bloqueado[]>>;
+  /** Le desbloquea. Devuelve la lista ya sin él. */
+  desbloquear(usuario: string): Promise<Resultado<Bloqueado[]>>;
 }
 
 const SIN_CONEXION = 'Sin conexión con Diario Hilario.';
@@ -225,8 +277,39 @@ export function crearApiXhatin(config: ConfigApiXhatin): ApiXhatin {
       const base = url();
       return base ? refinadorRemoto({ url: `${base}/xhatin/interpretar`, cabeceras, fetch: config.fetch }) : null;
     },
+
+    async abrirPrivado(usuario) {
+      if (!UUID.test(usuario)) return { datos: null, error: 'No se sabe con quién abrir la conversación.' };
+      const r = await pedirConError<{ canal?: string }>(`/xhatin/privado/${usuario.toLowerCase()}`, { method: 'POST', headers: JSON_ });
+      return r.ok && r.datos?.canal ? { datos: r.datos.canal, error: null } : { datos: null, error: r.error ?? 'No se ha podido abrir la conversación.' };
+    },
+
+    async denunciar(mensaje, motivo, comentario) {
+      const r = await pedirConError<{ denuncia: string | null }>('/xhatin/denuncias', {
+        method: 'POST',
+        headers: JSON_,
+        body: JSON.stringify({ mensaje, motivo, ...(comentario?.trim() ? { comentario: comentario.trim() } : {}) }),
+      });
+      return r.ok ? { datos: true, error: null } : { datos: null, error: r.error };
+    },
+
+    async leerBloqueos() {
+      const r = await pedir<{ bloqueados?: Bloqueado[] }>('/xhatin/bloqueos');
+      return Array.isArray(r?.bloqueados) ? r.bloqueados : null;
+    },
+
+    bloquear: (usuario) => cambiarBloqueo(usuario, 'PUT'),
+    desbloquear: (usuario) => cambiarBloqueo(usuario, 'DELETE'),
   };
+
+  async function cambiarBloqueo(usuario: string, method: 'PUT' | 'DELETE'): Promise<Resultado<Bloqueado[]>> {
+    if (!UUID.test(usuario)) return { datos: null, error: 'No se sabe a quién.' };
+    const r = await pedirConError<{ bloqueados?: Bloqueado[] }>(`/xhatin/bloqueos/${usuario.toLowerCase()}`, { method });
+    return r.ok && Array.isArray(r.datos?.bloqueados) ? { datos: r.datos.bloqueados, error: null } : { datos: null, error: r.error ?? 'No se ha podido.' };
+  }
 }
+
+const JSON_ = { 'Content-Type': 'application/json' };
 
 const UUID = /^[0-9a-f-]{36}$/i;
 

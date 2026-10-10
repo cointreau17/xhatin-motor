@@ -2,7 +2,7 @@
  * La lista de conversaciones: resumir un canal.
  */
 
-import { grupoDeCanal, nombreDeGente, resumenDe } from './conversaciones.js';
+import { grupoDeCanal, nombreDeGente, resumenDe, sinBloqueados } from './conversaciones.js';
 import type { CanalResumible } from './conversaciones.js';
 
 const canal = (
@@ -34,6 +34,7 @@ describe('lista de conversaciones', () => {
       id: '!members-abc',
       titulo: 'Ana',
       ultimo: 'Tú: hola',
+      ultimoDe: 'yo',
       fecha: '2026-10-09T10:00:00.000Z',
       noLeidos: 2,
       otros: ['otro'],
@@ -55,6 +56,19 @@ describe('lista de conversaciones', () => {
     expect(r?.titulo).toBe('Alguien');
     expect(r?.ultimo).toBe('Ha enviado un adjunto');
     expect(resumenDe(canal([{ id: 'yo' }, { id: 'a' }], undefined, { name: 'Redacción' }), 'yo')?.ultimo).toBeNull();
+  });
+
+  it('sin lo de quien he bloqueado: fuera sus privados, y en los grupos sin su último mensaje', () => {
+    const privado = resumenDe(canal([{ id: 'yo' }, { id: 'malo', name: 'Malo' }], { text: 'eh', user: 'malo' }), 'yo')!;
+    const conOtros = resumenDe(canal([{ id: 'yo' }, { id: 'malo' }, { id: 'ana' }], { text: 'hola', user: 'ana' }, {}, 0, '!members-tres'), 'yo')!;
+    const grupo = resumenDe(canal([{ id: 'yo' }, { id: 'malo' }], { text: 'insulto', user: 'malo' }, { name: 'Club' }, 0, 'group-' + G1), 'yo')!;
+
+    const quedan = sinBloqueados([privado, conOtros, grupo], new Set(['malo']));
+
+    expect(quedan.map((c) => c.id)).toEqual(['!members-tres', 'group-' + G1]);
+    expect(quedan[0]!.ultimo).toBe('hola');
+    expect(quedan[1]!.ultimo).toBe('Mensaje oculto');
+    expect(sinBloqueados([privado], new Set())).toEqual([privado]);
   });
 
   it('nombra a la gente, y sin nadie más es «Solo tú»', () => {

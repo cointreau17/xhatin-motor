@@ -22,14 +22,14 @@ subir versión, y cada pieza o expresión nueva se anota en el CHANGELOG.
 | Ruta | Qué es |
 |---|---|
 | `@diariohilario/xhatin-motor` | Todo junto: HilarAvatar, `Escena` (como espacio de nombres) y el contrato del chat |
-| `…/escena` | Motor de escena: `Director`, `componerVineta`, `CATALOGO`, `refinadorRemoto`… |
+| `…/escena` | Motor de escena: `Director`, `componerVineta`, `CATALOGO`, `refinadorRemoto`… y lo que rodea a la tira: `paginar`, `componerPortada`, `vinetaEscribiendo` |
 | `…/escena/*` | Módulos sueltos del motor, p. ej. `escena/pruebas/conversaciones` (los usa el laboratorio) |
 | `…/avatar` | HilarAvatar: `componer`, `aCodigo`, `deCodigo`, `aleatorio`, `expresionDeTexto`… |
 | `…/piezas` | Los datos de las piezas del avatar |
 | `…/chat` | `PuertoChat` (lo implementa quien tenga el cliente de chat), `PuertoChatFalso`, `ControladorComic`, la conversación como cómic sin framework, `puertoStream`, el puerto sobre un canal de Stream, `interlocutores`/`conQuien` para la cabecera «Hablando con…», la lista de conversaciones (`resumenDe`) y qué conversaciones son de cada entorno (`filtrarPorEntorno`) |
 | `…/api` | `crearApiXhatin({ url, token })`: el API de Xhatín en dhcore (perfiles, personajes, caricatura y refinador de IA). La URL y el token se los da quien lo usa |
-| `…/estilos` | Los estilos de cómic (`ESTILOS`, `opcionDe`), el reparto de personajes (`repartir`, `usoDe`) y las caricaturas propias |
-| `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta` |
+| `…/estilos` | Los estilos de cómic (`ESTILOS`, `opcionDe`), su letra (`LETRAS`, `prepararFuentes`), el reparto de personajes (`repartir`, `usoDe`) y las caricaturas propias |
+| `…/vineta.css` | La hoja de las viñetas: las animaciones, colgadas de `.dh-vineta`, y la página (`.dh-pagina`) y la portada (`.dh-portada`) |
 
 ```ts
 import { aleatorio, componer } from '@diariohilario/xhatin-motor';
@@ -45,6 +45,19 @@ opciones para viñetas pequeñas (las usa la app móvil, con dos por fila):
 `escalaLetra` agranda la letra de los globos, `separacion` los junta y
 `desborde` les deja salirse por encima del marco. Con `desborde`, la viñeta
 tiene que llevar la clase `dh-vineta--desborda` para no recortarlos.
+
+La tira se pinta como una página de cómic: el contenedor lleva `.dh-pagina`
+y `--dh-columnas` (`.dh-pagina--una` con una columna), cada viñeta ancha
+`.dh-pagina__ancha`, y `paginar(tira, columnas)` cambia el formato de alguna
+viñeta para que las filas queden llenas. Encima, `componerPortada` (con
+`numeroDeTira` y `estado.titulo` del controlador); al final, mientras alguien
+escribe, `vinetaEscribiendo(estado.escribiendo)`, con la clase
+`dh-vineta--escribiendo`. Las viñetas de tensión llevan `dh-vineta--tension`.
+
+La letra de los globos se sirve desde el propio proyecto:
+`prepararFuentes(opcion, base)` carga de `base` los archivos de `LETRAS`
+(Comic Neue, Bangers y Patrick Hand, de licencia OFL) y dice si hay que
+volver a componer. Sin ellos se queda la letra del sistema.
 
 El motor de escena va como espacio de nombres en la raíz porque comparte
 nombres con HilarAvatar: el `normalizar` del léxico no es el del avatar.
@@ -105,9 +118,34 @@ día lo bloquea, se aprueba con
 npm run build       # dist/: tsc + copia de HilarAvatar (JS) y vineta.css
 npm run clean       # borra dist/ (build no lo hace, para no dejar sin motor a quien lo usa)
 npm run typecheck
-npm test            # tests del motor de escena (vitest)
+npm test            # tests del motor de escena y de HilarAvatar (vitest)
 npm run check       # las tres cosas
+npm run piezas      # regenera src/hilaravatar/piezas.js desde hilaravatar/
 ```
+
+## Las piezas de HilarAvatar
+
+Los dibujos están en `hilaravatar/`: `manifest.json` (categorías, opciones,
+paletas, expresiones) y un SVG por pieza en `piezas/<categoría>/<id>.svg`,
+completo y de 512×512, para abrirlo y retocarlo en cualquier editor. De ahí
+sale `src/hilaravatar/piezas.js`, que no se edita a mano: después de tocar
+un dibujo, `npm run piezas` (con `-- --check` solo comprueba que está al día).
+
+Todo se dibuja sobre la cabeza ovalada. Para que encaje en las demás, el
+generador mide cada cabeza (el contorno marcado con `data-contorno="cara"` y
+las orejas) y las piezas dicen en sus grupos cómo ajustarse:
+
+| Marca | Qué hace |
+|---|---|
+| `data-ajuste="craneo"`, `"mandibula"`, `"barbilla"`, `"orejas"`, `"oreja-izquierda"`, `"brazo-derecho"`… | un `transform` medido que lleva la ovalada a esa cabeza (pelo, sombreros, perillas, gafas…) |
+| `data-recorte="cara"` | recorta el grupo por el contorno de la cara (barbas) |
+| `<path data-repaso="cara"/>` | vuelve a trazar el contorno de la cara encima de lo recortado |
+| `data-pegado="cara-izquierda"` / `"cara-derecha"` | lo redibuja para cada cabeza pegado a su borde y sin meterse en los ojos (patillas) |
+| `<g class="dh-bigote">` dentro de una barba | se pinta encima de la boca; el resto de la barba, debajo de ojos y boca |
+
+Algunas piezas se dibujan con cuentas (ondas, puntos, simetrías) en
+`scripts/redibujar.py`; si se retoca a mano una de ellas, no volver a
+ejecutarlo o se pierde el retoque.
 
 ## De dónde sale
 
@@ -118,9 +156,11 @@ Sacado del remote de xhatin (`remote-angular/src/app`, commit `9e60a9b`, del
 - de `hilaravatar/`: `hilaravatar.js`, `piezas.js` y sus `.d.ts`,
   `puerto-chat.ts`, `puerto-falso.ts` y `vineta.css`.
 
-El `piezas.js` es el del remote, no el de `src/` en la raíz de xhatin: el de la
-raíz no tiene el arreglo `10b132b` (atributos repetidos que rompían `aDataUrl`
-y `aPng`).
+El `piezas.js` era el del remote, no el de `src/` en la raíz de xhatin: el de
+la raíz no tiene el arreglo `10b132b` (atributos repetidos que rompían
+`aDataUrl` y `aPng`). Desde la 0.11.0 se genera desde `hilaravatar/` (ver «Las
+piezas de HilarAvatar»), y las copias de `assets/hilaravatar` de xhatin ya no
+son el origen.
 
 El remote ya no tiene su copia: importa de aquí. Los cambios del motor se
 hacen en este repo.

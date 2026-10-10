@@ -39,6 +39,9 @@ import { POSES_PERSISTENTES, REGLAS_ESCENA, type CtxEscena } from './reglas-esce
 import { alturaGlobos } from '../composicion/globos.js';
 import { TAM_VINETA } from '../modelo.js';
 
+/** Caras que, muy intensas, piden fondo de impacto (ver decidirImpacto). */
+const EXPRESIONES_DE_IMPACTO: ReadonlySet<string> = new Set(['sorprendido', 'gritando', 'furioso', 'asustado']);
+
 export interface ConfigDirector {
   /** Globos que caben en una viñeta, por formato. */
   maxGlobos: Record<FormatoVineta, number>;
@@ -258,6 +261,7 @@ export class Director {
     this.distribuir(v);
     this.decidirEfectos(v);
     this.decidirAmbiente(v);
+    this.decidirImpacto(v);
     v.notas.push(
       `#${indice} ${m.autorNombre}: ${interp.emocion}/${interp.pose}/${interp.globo}` +
         (decision.nueva ? ` · nueva viñeta (${decision.motivos.join(', ')})` : ' · sigue en la viñeta') +
@@ -878,6 +882,21 @@ export class Director {
       }
     }
     v.efectos = elegidos;
+  }
+
+  /**
+   * Momentos fuertes a lo grande: un grito o una sorpresa muy intensos de
+   * quien habla el último cambian el decorado por líneas de impacto desde su
+   * cara. Solo con poca gente: en una viñeta llena se perdería quién es.
+   */
+  private decidirImpacto(v: Vineta): void {
+    delete v.impacto;
+    const g = [...v.globos].reverse().find((x) => x.autorId);
+    const p = g && v.personajes.find((x) => x.id === g.autorId);
+    if (!g || !p || v.personajes.length > 3) return;
+    const grito = g.tipo === 'grito' && g.intensidad >= 0.7;
+    const sorpresa = EXPRESIONES_DE_IMPACTO.has(p.expresion) && g.intensidad >= 0.8;
+    if (grito || sorpresa) v.impacto = { sobre: p.id };
   }
 
   private decidirAmbiente(v: Vineta): void {

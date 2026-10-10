@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" style="--dh-tinta:#1B1714;--dh-papel:#F2E9D8;--dh-piel:#DDA273;--dh-piel-sombra:#B87D4E;--dh-pelo:#4E342A;--dh-pelo-sombra:#33211A;--dh-ropa:#CF3A2B;--dh-ropa-2:#F2E9D8;--dh-fondo:#E7C86A;--dh-fondo-2:#D2A93F;--dh-acento:#CF3A2B;--dh-boca:#A8402F;--dh-cristal:#8FB8C4">
+<defs>
+  <pattern id="dh-trama" width="16" height="16" patternUnits="userSpaceOnUse">
+    <circle cx="4" cy="4" r="3" fill="var(--dh-fondo-2, #D2A93F)"/>
+    <circle cx="12" cy="12" r="3" fill="var(--dh-fondo-2, #D2A93F)"/>
+  </pattern>
+  <pattern id="dh-trama-fina" width="10" height="10" patternUnits="userSpaceOnUse">
+    <circle cx="3" cy="3" r="1.6" fill="var(--dh-fondo-2, #D2A93F)"/>
+    <circle cx="8" cy="8" r="1.6" fill="var(--dh-fondo-2, #D2A93F)"/>
+  </pattern>
+  <pattern id="dh-rayas" width="18" height="18" patternUnits="userSpaceOnUse"
+           patternTransform="rotate(38)">
+    <rect width="7" height="18" fill="var(--dh-fondo-2, #D2A93F)"/>
+  </pattern>
+  <pattern id="dh-cuadros" width="26" height="26" patternUnits="userSpaceOnUse"
+           patternTransform="rotate(12)">
+    <rect width="26" height="26" fill="var(--dh-ropa, #CF3A2B)"/>
+    <rect width="13" height="26" fill="var(--dh-ropa-2, #F2E9D8)" opacity="0.35"/>
+    <rect width="26" height="13" fill="var(--dh-ropa-2, #F2E9D8)" opacity="0.35"/>
+  </pattern>
+  <clipPath id="dh-marco">
+    <rect x="0" y="0" width="512" height="512"/>
+  </clipPath>
+</defs>
+<g class="dh-pelo" data-ajuste="craneo">
+  <path d="M150 212 C148 140 192 96 256 96 C320 96 364 140 362 212
+           C348 178 320 150 256 150 C192 150 164 178 150 212 Z" fill="var(--dh-pelo, #2C2422)" stroke="var(--dh-tinta, #1B1714)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

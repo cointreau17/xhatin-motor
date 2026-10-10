@@ -2,15 +2,16 @@
    de .dh-vineta. Las animaciones son pequeñas a propósito: que la tira se
    sienta viva sin marear. */
 
+/* Una viñeta de página de cómic, no una tarjeta: esquinas rectas, borde de
+   tinta grueso y sin sombra. El aire entre viñetas lo pone la página. */
 .dh-vineta {
   --dh-v-tinta: #1b1714;
   display: block;
   position: relative;
   overflow: hidden;
-  border: 3px solid var(--dh-v-tinta);
-  border-radius: 6px;
+  border: 4px solid var(--dh-v-tinta);
+  border-radius: 0;
   background: #f2e9d8;
-  box-shadow: 5px 5px 0 rgb(0 0 0 / 45%);
   /* Las viñetas fuera de pantalla no se pintan; el alto declarado evita
      saltos de scroll. */
   content-visibility: auto;
@@ -112,6 +113,50 @@
 /* ------------------------------------------------------------- globos --- */
 .dh-vineta--viva .dh-globo.dh-nuevo { animation: dh-globo .38s cubic-bezier(.2,1.5,.4,1) .15s both; }
 @keyframes dh-globo { from { transform: scale(.15); opacity: 0; } 60% { opacity: 1; } }
+
+/* ------------------------------------------------------------ página --- */
+/* La tira como página de cómic: calles finas y regulares, y el papel con su
+   trama de puntos. Quien pinta la tira pone .dh-pagina en el contenedor y
+   cuántas columnas (--dh-columnas); `paginar` del motor llena las filas. */
+.dh-pagina {
+  display: grid;
+  grid-template-columns: repeat(var(--dh-columnas, 2), minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border: 4px solid #1b1714;
+  background-color: #f2e9d8;
+  background-image: radial-gradient(rgb(27 23 20 / 15%) 1.1px, transparent 1.5px);
+  background-size: 10px 10px;
+}
+.dh-pagina .dh-pagina__ancha { grid-column: span 2; }
+/* Con una sola columna (.dh-pagina--una), todo va a lo ancho. */
+.dh-pagina--una .dh-pagina__ancha { grid-column: auto; }
+.dh-pagina .dh-pagina__entera { grid-column: 1 / -1; }
+
+/* En la tensión, la viñeta se tuerce, como en los momentos de nervios. Con
+   `rotate` y no con `transform`, que es lo que animan las entradas: si no,
+   la última viñeta se quedaría recta. */
+.dh-vineta--tension { rotate: -1.2deg; }
+.dh-vineta--tension.dh-vineta--ancha { rotate: 0.6deg; }
+
+/* La portada del número: arriba, a todo lo ancho. */
+.dh-portada { display: block; margin: 0 0 10px; }
+.dh-portada > svg { display: block; width: 100%; height: auto; }
+
+/* ------------------------------------------------- momentos fuertes --- */
+/* Los gritos muy fuertes tiemblan al llegar. */
+.dh-vineta--viva .dh-globo--tiembla text { animation: dh-temblor .09s linear 16; }
+/* La onomatopeya entra de golpe y rebota. */
+.dh-vineta--viva .dh-globo--sonido.dh-nuevo { animation: dh-sonido .45s cubic-bezier(.2,1.8,.4,1) .1s both; }
+@keyframes dh-sonido { from { transform: scale(.2) rotate(-20deg); opacity: 0; } }
+
+/* --------------------------------------------------------- escribiendo --- */
+/* La viñeta de quien está escribiendo: teclea sin parar mientras dure, y los
+   puntos suspensivos laten. */
+.dh-vineta--escribiendo .dh-anim-teclea .dh-brazo-del { animation: dh-teclea .22s ease-in-out infinite alternate; }
+.dh-vineta--escribiendo .dh-globo--pensamiento text { animation: dh-escribe 1.1s ease-in-out infinite; }
+@keyframes dh-escribe { 50% { opacity: .3; } }
 
 /* Quien prefiere menos movimiento, lo tiene. */
 @media (prefers-reduced-motion: reduce) {

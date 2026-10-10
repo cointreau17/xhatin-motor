@@ -1,4 +1,5 @@
 import { CARICATURA } from '../escena/estilos/caricatura.js';
+import { olvidarMedidas } from '../escena/composicion/globos.js';
 import type { EstiloComic, PersonajeImagen, UsoEstilo } from '../escena/estilos/tipos.js';
 import type { IdEstilo, PerfilXhatin } from '../api/xhatin.js';
 
@@ -20,21 +21,55 @@ export interface OpcionEstilo {
   descripcion: string;
   /** Biblioteca de imagen; sin ella, el dibujo vectorial de siempre. */
   biblioteca?: EstiloComic;
-  /** Hojas de Google Fonts con la letra del estilo. */
+  /**
+   * La letra del estilo: la de los globos y la de los rótulos. Se sirve desde
+   * el propio proyecto (ver LETRAS y `prepararFuentes`).
+   */
+  letras: readonly string[];
+  /**
+   * Respaldo mientras no estén los archivos: la hoja de Google Fonts que
+   * usaba el estilo antes. Los estilos nuevos no la llevan.
+   */
   fuentes?: string;
 }
+
+/**
+ * Una letra servida desde el propio proyecto. Todas son de licencia OFL, que
+ * deja incluirlas: Comic Neue (Craig Rozynski), Bangers (Vernon Adams) y
+ * Patrick Hand (Patrick Wagesreiter). Los archivos van en la carpeta que se
+ * le dé a `prepararFuentes` (en la web, `public/fuentes/` del remote).
+ */
+export interface Letra {
+  familia: string;
+  archivo: string;
+  peso?: string;
+  estilo?: 'normal' | 'italic';
+}
+
+export const LETRAS: Readonly<Record<string, readonly Letra[]>> = {
+  'Comic Neue': [
+    { familia: 'Comic Neue', archivo: 'ComicNeue-Regular.woff2' },
+    { familia: 'Comic Neue', archivo: 'ComicNeue-Bold.woff2', peso: '700' },
+    { familia: 'Comic Neue', archivo: 'ComicNeue-Italic.woff2', estilo: 'italic' },
+    { familia: 'Comic Neue', archivo: 'ComicNeue-BoldItalic.woff2', peso: '700', estilo: 'italic' },
+  ],
+  Bangers: [{ familia: 'Bangers', archivo: 'Bangers-Regular.woff2' }],
+  'Patrick Hand': [{ familia: 'Patrick Hand', archivo: 'PatrickHand-Regular.woff2' }],
+};
 
 export const ESTILOS: readonly OpcionEstilo[] = [
   {
     id: 'jovenes',
     nombre: 'Jóvenes',
     descripcion: 'Los personajes de siempre, hechos con el avatar de cada uno.',
+    letras: ['Comic Neue', 'Bangers'],
   },
   {
     id: 'caricatura',
     nombre: CARICATURA.nombre,
     descripcion: CARICATURA.descripcion,
     biblioteca: CARICATURA,
+    letras: ['Patrick Hand', 'Bangers'],
     fuentes: 'https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Bangers&display=swap',
   },
 ];
@@ -45,28 +80,67 @@ export function opcionDe(id: string | null | undefined): OpcionEstilo {
   return ESTILOS.find((e) => e.id === id) ?? ESTILOS[0]!;
 }
 
-const cargadas = new Set<string>();
+/** Cada archivo, una vez por página: lo que prometió cargarlo (true si llegó). */
+const archivos = new Map<string, Promise<boolean>>();
+const hojas = new Set<string>();
+
+function cargarArchivo(base: string, l: Letra): Promise<boolean> {
+  const url = base + l.archivo;
+  let p = archivos.get(url);
+  if (!p) {
+    const cara = new FontFace(l.familia, `url("${url}") format("woff2")`, {
+      weight: l.peso ?? '400',
+      style: l.estilo ?? 'normal',
+      display: 'swap',
+    });
+    p = cara
+      .load()
+      .then((cargada) => {
+        document.fonts.add(cargada);
+        return true;
+      })
+      .catch(() => false);
+    archivos.set(url, p);
+  }
+  return p;
+}
+
+async function cargarHoja(href: string): Promise<void> {
+  if (hojas.has(href)) return;
+  hojas.add(href);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+  await new Promise((ok) => {
+    link.onload = ok;
+    link.onerror = ok;
+  });
+}
 
 /**
  * Carga la letra de un estilo (una vez por página) y espera a que esté: los
- * globos se miden con ella, y medirlos con otra los deja mal ajustados. Sin
- * navegador no hace nada.
+ * globos se miden con ella, y medirlos con otra los deja mal ajustados.
+ *
+ * `base` es la carpeta (URL acabada en «/») donde están los archivos de
+ * LETRAS. Si falta alguno, el estilo que traía hoja de Google Fonts la usa de
+ * respaldo; el que no, se queda con la letra del sistema, como antes.
+ *
+ * Devuelve true si la letra ha cambiado: entonces lo medido se olvida y quien
+ * pinta tiene que volver a componer las viñetas. Sin navegador no hace nada.
  */
-export async function prepararFuentes(opcion: OpcionEstilo): Promise<void> {
-  if (typeof document === 'undefined' || !opcion.fuentes || !opcion.biblioteca?.fuentes) return;
-  if (!cargadas.has(opcion.fuentes)) {
-    cargadas.add(opcion.fuentes);
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = opcion.fuentes;
-    document.head.appendChild(link);
-    await new Promise((ok) => {
-      link.onload = ok;
-      link.onerror = ok;
-    });
-  }
-  const { dialogo, rotulo } = opcion.biblioteca.fuentes;
-  await Promise.all([document.fonts.load(`29px ${dialogo}`), document.fonts.load(`62px ${rotulo}`)]).catch(() => undefined);
+export async function prepararFuentes(opcion: OpcionEstilo, base?: string | null): Promise<boolean> {
+  if (typeof document === 'undefined' || typeof FontFace === 'undefined' || !document.fonts) return false;
+  const letras = opcion.letras.flatMap((familia) => LETRAS[familia] ?? []);
+  const llegaron = base ? await Promise.all(letras.map((l) => cargarArchivo(base, l))) : [];
+  const todas = !!letras.length && llegaron.length === letras.length && llegaron.every(Boolean);
+  if (!todas && opcion.fuentes) await cargarHoja(opcion.fuentes);
+  await Promise.all(opcion.letras.map((f) => document.fonts.load(`29px '${f}'`))).catch(() => undefined);
+  // Ha cambiado si llegó la letra propia o la de respaldo; si no, se sigue
+  // con la del sistema y lo medido vale.
+  const cambia = todas || !!opcion.fuentes;
+  if (cambia) olvidarMedidas();
+  return cambia;
 }
 
 /** Hash corto y estable, para repartir personajes sin guardar nada. */

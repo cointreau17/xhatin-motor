@@ -269,6 +269,12 @@ export interface Vineta {
   abreEscena: boolean;
   /** Rótulo de narración al principio ("Más tarde…", "En la cafetería"). */
   rotulo?: string;
+  /**
+   * Momento fuerte (un grito, una sorpresa muy grande): el decorado se cambia
+   * por líneas de impacto que salen de la cara de `sobre`, como en el manga y
+   * el cómic americano.
+   */
+  impacto?: { sobre: Id };
   /** Qué ha pasado, para el laboratorio. No afecta al dibujo. */
   notas: string[];
 }

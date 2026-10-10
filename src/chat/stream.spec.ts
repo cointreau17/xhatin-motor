@@ -5,12 +5,13 @@
 
 import type { CanalStream, EventoStream, MensajeStream, MiembroStream } from './stream.js';
 import { mensajeDeStream, puertoStream } from './stream.js';
-import type { MensajeChat, PresenciaChat } from './puerto-chat.js';
+import type { EscrituraChat, MensajeChat, PresenciaChat } from './puerto-chat.js';
 
 class CanalFalso implements CanalStream {
   vigilado = 0;
   enviados: string[] = [];
   state: { members: Record<string, MiembroStream> } = { members: {} };
+  data: { name?: string } | null = null;
   /** Si es un número, los `watch()` fallan hasta llegar a cero. */
   fallos = 0;
   private readonly oyentes = new Map<string, Set<(e: EventoStream) => void>>();
@@ -38,6 +39,19 @@ class CanalFalso implements CanalStream {
   leido = 0;
   async markRead(): Promise<void> {
     this.leido++;
+  }
+
+  teclas = 0;
+  paradas = 0;
+  async keystroke(): Promise<void> {
+    this.teclas++;
+  }
+  async stopTyping(): Promise<void> {
+    this.paradas++;
+  }
+
+  getClient(): { userID?: string } {
+    return { userID: 'u-yo' };
   }
 
   on(evento: string, cb: (e: EventoStream) => void): { unsubscribe(): void } {
@@ -140,6 +154,13 @@ describe('puerto sobre un canal de Stream', () => {
     ]);
   });
 
+  it('el nombre del canal es el título de la conversación; un privado no tiene', async () => {
+    const grupo = new CanalFalso();
+    grupo.data = { name: ' Los del cierre ' };
+    expect(await puertoStream(() => grupo).titulo?.()).toBe('Los del cierre');
+    expect(await puertoStream(() => new CanalFalso()).titulo?.()).toBeNull();
+  });
+
   it('las altas y bajas del canal son entradas y salidas', async () => {
     const canal = new CanalFalso();
     const eventos: PresenciaChat[] = [];
@@ -163,5 +184,39 @@ describe('puerto sobre un canal de Stream', () => {
     await expect(puerto.historial()).rejects.toThrow('sin red');
     expect((await puerto.historial()).map((m) => m.id)).toEqual(['m1']);
     expect(canal.vigilado).toBe(2);
+  });
+});
+
+describe('puertoStream: escribiendo', () => {
+  it('cuenta quién empieza y deja de escribir, y deja de oír al darse de baja', async () => {
+    const canal = new CanalFalso();
+    const puerto = puertoStream(() => canal);
+    const vistos: EscrituraChat[] = [];
+    const baja = puerto.alEscribir!((e) => vistos.push(e));
+    await vaciar();
+
+    canal.emitir('typing.start', { user: { id: 'u-ana', name: 'Ana', avatar: 'v1|ana' } });
+    // Los avisos propios, que Stream también devuelve, no cuentan.
+    canal.emitir('typing.start', { user: { id: 'u-yo', name: 'Yo' } });
+    canal.emitir('typing.stop', { user: { id: 'u-ana', name: 'Ana' } });
+    expect(vistos).toEqual([
+      { usuarioId: 'u-ana', nombre: 'Ana', avatar: 'v1|ana', escribe: true },
+      { usuarioId: 'u-ana', nombre: 'Ana', avatar: null, escribe: false },
+    ]);
+
+    baja();
+    expect(canal.oyendo('typing.start')).toBe(0);
+    expect(canal.oyendo('typing.stop')).toBe(0);
+  });
+
+  it('avisa de que escribo, y al enviar deja de avisar', async () => {
+    const canal = new CanalFalso();
+    const puerto = puertoStream(() => canal);
+    puerto.escribiendo!();
+    await vaciar();
+    expect(canal.teclas).toBe(1);
+    await puerto.enviar('hola');
+    await vaciar();
+    expect(canal.paradas).toBe(1);
   });
 });

@@ -1,0 +1,1455 @@
+{
+  "nombre": "HilarAvatar",
+  "version": 1,
+  "lienzo": {
+    "ancho": 512,
+    "alto": 512
+  },
+  "zOrder": [
+    "fondo",
+    "pelo-tras",
+    "cuerpo",
+    "cabeza",
+    "cejas",
+    "ojos",
+    "nariz",
+    "boca",
+    "barba",
+    "pelo",
+    "gafas",
+    "sombrero",
+    "extra"
+  ],
+  "categorias": [
+    {
+      "id": "fondo",
+      "nombre": "Fondo",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "nada",
+          "nombre": "Sin fondo",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "liso",
+          "nombre": "Liso",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "trama",
+          "nombre": "Semitono",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "trama-fina",
+          "nombre": "Semitono fino",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "rayas",
+          "nombre": "Rayas diagonales",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "estallido",
+          "nombre": "Estallido",
+          "rol": "base",
+          "tags": [
+            "comic"
+          ],
+          "req": {}
+        },
+        {
+          "id": "arco",
+          "nombre": "Medio arco",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "titular",
+          "nombre": "Titular",
+          "rol": "base",
+          "tags": [
+            "prensa"
+          ],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "pelo-tras",
+      "nombre": "Pelo (detras)",
+      "obligatoria": true,
+      "oculta": true,
+      "opciones": [
+        {
+          "id": "nada",
+          "nombre": "Nada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "melena",
+          "nombre": "Melena",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "coleta",
+          "nombre": "Coleta",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "mono",
+          "nombre": "Mono",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "afro",
+          "nombre": "Afro",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "rizos",
+          "nombre": "Rizos largos",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "trenza",
+          "nombre": "Trenza",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "cuerpo",
+      "nombre": "Cuerpo",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "camiseta",
+          "nombre": "Camiseta",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "camisa",
+          "nombre": "Camisa",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "jersey",
+          "nombre": "Jersey de cuello alto",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "chaqueta",
+          "nombre": "Chaqueta y corbata",
+          "rol": "base",
+          "tags": [
+            "formal"
+          ],
+          "req": {}
+        },
+        {
+          "id": "capucha",
+          "nombre": "Sudadera con capucha",
+          "rol": "base",
+          "tags": [
+            "casual"
+          ],
+          "req": {}
+        },
+        {
+          "id": "tirantes",
+          "nombre": "Camisa con tirantes",
+          "rol": "base",
+          "tags": [
+            "retro"
+          ],
+          "req": {}
+        },
+        {
+          "id": "bata",
+          "nombre": "Bata de cocina",
+          "rol": "base",
+          "tags": [
+            "cocina"
+          ],
+          "req": {}
+        },
+        {
+          "id": "hawaiana",
+          "nombre": "Camisa hawaiana",
+          "rol": "base",
+          "tags": [
+            "casual"
+          ],
+          "req": {}
+        },
+        {
+          "id": "chandal",
+          "nombre": "Chandal",
+          "rol": "base",
+          "tags": [
+            "retro"
+          ],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "cabeza",
+      "nombre": "Cabeza",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "ovalo",
+          "nombre": "Ovalada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "patata",
+          "nombre": "Patata",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "cuadrada",
+          "nombre": "Cuadrada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "pera",
+          "nombre": "Pera",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "alargada",
+          "nombre": "Alargada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "redonda",
+          "nombre": "Redonda",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "cejas",
+      "nombre": "Cejas",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "rectas",
+          "nombre": "Rectas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "pobladas",
+          "nombre": "Pobladas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "finas",
+          "nombre": "Finas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "arqueadas",
+          "nombre": "Arqueadas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "unica",
+          "nombre": "Unica",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "asimetricas",
+          "nombre": "Asimetricas",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "cortas",
+          "nombre": "Cortas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-enfadado",
+          "nombre": "Enfadado",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-triste",
+          "nombre": "Triste",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-sorpresa",
+          "nombre": "Sorpresa",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-duda",
+          "nombre": "Duda",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "ojos",
+      "nombre": "Ojos",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "normales",
+          "nombre": "Normales",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "cansados",
+          "nombre": "Cansados",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "saltones",
+          "nombre": "Saltones",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "entrecerrados",
+          "nombre": "Entrecerrados",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "asimetricos",
+          "nombre": "Asimetricos",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "puntos",
+          "nombre": "Puntos",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "rendijas",
+          "nombre": "Rendijas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "despiertos",
+          "nombre": "Muy despiertos",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "bizcos",
+          "nombre": "Bizcos",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "de-lado",
+          "nombre": "Mirada de lado",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "exp-feliz",
+          "nombre": "Feliz",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-enfadado",
+          "nombre": "Enfadado",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-grito",
+          "nombre": "Grito",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-triste",
+          "nombre": "Triste",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-chulo",
+          "nombre": "Chulesco",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-cerrados",
+          "nombre": "Cerrados",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-pensando",
+          "nombre": "Pensando",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "nariz",
+      "nombre": "Nariz",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "boton",
+          "nombre": "Boton",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "aguilena",
+          "nombre": "Aguilena",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "patata",
+          "nombre": "Patata",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "ancha",
+          "nombre": "Ancha",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "respingona",
+          "nombre": "Respingona",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "larga",
+          "nombre": "Larga",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "ganchuda",
+          "nombre": "Ganchuda",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "boca",
+      "nombre": "Boca",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "neutra",
+          "nombre": "Neutra",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "linea",
+          "nombre": "Linea apretada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "sonrisa",
+          "nombre": "Sonrisa",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "dientes",
+          "nombre": "Sonrisa con dientes",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "mueca",
+          "nombre": "Mueca",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "abierta",
+          "nombre": "Hablando",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "triste",
+          "nombre": "Triste",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "lengua",
+          "nombre": "Lengua fuera",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "silbido",
+          "nombre": "Silbido",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "torcida",
+          "nombre": "Torcida",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "pucheros",
+          "nombre": "Pucheros",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-grito",
+          "nombre": "Grito",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-risa",
+          "nombre": "Carcajada",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "exp-duda",
+          "nombre": "Duda",
+          "rol": "expresion",
+          "tags": [],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "barba",
+      "nombre": "Barba",
+      "obligatoria": false,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "nada",
+          "nombre": "Sin barba",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "tres-dias",
+          "nombre": "Tres dias",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "bigote",
+          "nombre": "Bigote",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "morsa",
+          "nombre": "Morsa",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "perilla",
+          "nombre": "Perilla",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "chivo",
+          "nombre": "Chivo",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "completa",
+          "nombre": "Barba completa",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "patillas",
+          "nombre": "Patillas",
+          "rol": "base",
+          "tags": [
+            "retro"
+          ],
+          "req": {}
+        },
+        {
+          "id": "candado",
+          "nombre": "Candado",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "pelo",
+      "nombre": "Pelo",
+      "obligatoria": true,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "calvo",
+          "nombre": "Calvo",
+          "rol": "base",
+          "tags": [
+            "calvo"
+          ],
+          "req": {}
+        },
+        {
+          "id": "coronilla",
+          "nombre": "Coronilla",
+          "rol": "base",
+          "tags": [
+            "calvo",
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "entradas",
+          "nombre": "Entradas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "rapado",
+          "nombre": "Rapado",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "casquete",
+          "nombre": "Tazon",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "flequillo",
+          "nombre": "Flequillo",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "cortina",
+          "nombre": "Cortinillas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "tupe",
+          "nombre": "Tupe",
+          "rol": "base",
+          "tags": [
+            "retro"
+          ],
+          "req": {}
+        },
+        {
+          "id": "despeinado",
+          "nombre": "Despeinado",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "cresta",
+          "nombre": "Cresta",
+          "rol": "base",
+          "tags": [
+            "retro"
+          ],
+          "req": {}
+        },
+        {
+          "id": "afro",
+          "nombre": "Afro",
+          "rol": "base",
+          "tags": [],
+          "req": {
+            "pelo-tras": "afro"
+          }
+        },
+        {
+          "id": "rizos",
+          "nombre": "Rizos",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "melena",
+          "nombre": "Melena",
+          "rol": "base",
+          "tags": [],
+          "req": {
+            "pelo-tras": "melena"
+          }
+        },
+        {
+          "id": "coleta",
+          "nombre": "Coleta",
+          "rol": "base",
+          "tags": [],
+          "req": {
+            "pelo-tras": "coleta"
+          }
+        },
+        {
+          "id": "mono",
+          "nombre": "Mono",
+          "rol": "base",
+          "tags": [],
+          "req": {
+            "pelo-tras": "mono"
+          }
+        },
+        {
+          "id": "trenza",
+          "nombre": "Trenza",
+          "rol": "base",
+          "tags": [],
+          "req": {
+            "pelo-tras": "trenza"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gafas",
+      "nombre": "Gafas",
+      "obligatoria": false,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "nada",
+          "nombre": "Sin gafas",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "pasta",
+          "nombre": "De pasta",
+          "rol": "base",
+          "tags": [
+            "gafas"
+          ],
+          "req": {}
+        },
+        {
+          "id": "redondas",
+          "nombre": "Redondas",
+          "rol": "base",
+          "tags": [
+            "gafas"
+          ],
+          "req": {}
+        },
+        {
+          "id": "sol",
+          "nombre": "De sol",
+          "rol": "base",
+          "tags": [
+            "gafas"
+          ],
+          "req": {}
+        },
+        {
+          "id": "media-luna",
+          "nombre": "Media luna",
+          "rol": "base",
+          "tags": [
+            "gafas"
+          ],
+          "req": {}
+        },
+        {
+          "id": "monoculo",
+          "nombre": "Monoculo",
+          "rol": "base",
+          "tags": [
+            "gafas",
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "visera-vr",
+          "nombre": "Visor",
+          "rol": "base",
+          "tags": [
+            "gafas",
+            "tecno"
+          ],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "sombrero",
+      "nombre": "Sombrero",
+      "obligatoria": false,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "nada",
+          "nombre": "Sin nada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "boina",
+          "nombre": "Boina",
+          "rol": "base",
+          "tags": [
+            "espana"
+          ],
+          "req": {}
+        },
+        {
+          "id": "gorra",
+          "nombre": "Gorra",
+          "rol": "base",
+          "tags": [
+            "casual"
+          ],
+          "req": {}
+        },
+        {
+          "id": "prensa",
+          "nombre": "Sombrero de prensa",
+          "rol": "base",
+          "tags": [
+            "prensa",
+            "identidad"
+          ],
+          "req": {}
+        },
+        {
+          "id": "papel",
+          "nombre": "Gorro de papel",
+          "rol": "base",
+          "tags": [
+            "prensa",
+            "identidad"
+          ],
+          "req": {}
+        },
+        {
+          "id": "lana",
+          "nombre": "Gorro de lana",
+          "rol": "base",
+          "tags": [
+            "casual"
+          ],
+          "req": {}
+        },
+        {
+          "id": "auriculares",
+          "nombre": "Auriculares",
+          "rol": "base",
+          "tags": [
+            "tecno"
+          ],
+          "req": {}
+        },
+        {
+          "id": "diadema",
+          "nombre": "Diadema",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "corona",
+          "nombre": "Corona de papel",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        }
+      ]
+    },
+    {
+      "id": "extra",
+      "nombre": "Extras",
+      "obligatoria": false,
+      "oculta": false,
+      "opciones": [
+        {
+          "id": "nada",
+          "nombre": "Nada",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "lapiz",
+          "nombre": "Lapiz en la oreja",
+          "rol": "base",
+          "tags": [
+            "prensa",
+            "identidad"
+          ],
+          "req": {}
+        },
+        {
+          "id": "pendiente",
+          "nombre": "Pendiente",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "tirita",
+          "nombre": "Tirita",
+          "rol": "base",
+          "tags": [
+            "guasa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "lunar",
+          "nombre": "Lunar",
+          "rol": "base",
+          "tags": [],
+          "req": {}
+        },
+        {
+          "id": "cafe",
+          "nombre": "Cafe",
+          "rol": "base",
+          "tags": [
+            "prensa"
+          ],
+          "req": {}
+        },
+        {
+          "id": "chapa",
+          "nombre": "Chapa de prensa",
+          "rol": "base",
+          "tags": [
+            "identidad"
+          ],
+          "req": {}
+        },
+        {
+          "id": "auriculares-cuello",
+          "nombre": "Cascos al cuello",
+          "rol": "base",
+          "tags": [
+            "tecno"
+          ],
+          "req": {}
+        }
+      ]
+    }
+  ],
+  "paletas": {
+    "piel": [
+      {
+        "id": "hueso",
+        "nombre": "Hueso",
+        "color": "#F1D6BE",
+        "sombra": "#D5AE8E"
+      },
+      {
+        "id": "clara",
+        "nombre": "Clara",
+        "color": "#EFC39C",
+        "sombra": "#CE9A70"
+      },
+      {
+        "id": "media",
+        "nombre": "Media",
+        "color": "#DDA273",
+        "sombra": "#B87D4E"
+      },
+      {
+        "id": "morena",
+        "nombre": "Morena",
+        "color": "#BF7F52",
+        "sombra": "#95592F"
+      },
+      {
+        "id": "oscura",
+        "nombre": "Oscura",
+        "color": "#8A5734",
+        "sombra": "#653B20"
+      },
+      {
+        "id": "ebano",
+        "nombre": "Ebano",
+        "color": "#5C3823",
+        "sombra": "#3E2313"
+      },
+      {
+        "id": "marciana",
+        "nombre": "Marciana",
+        "color": "#8FBE92",
+        "sombra": "#65946B"
+      },
+      {
+        "id": "espectro",
+        "nombre": "Espectro",
+        "color": "#C5C0D2",
+        "sombra": "#9A94AC"
+      }
+    ],
+    "pelo": [
+      {
+        "id": "tinta",
+        "nombre": "Negro tinta",
+        "color": "#241F1C",
+        "sombra": "#120F0D"
+      },
+      {
+        "id": "castano",
+        "nombre": "Castano",
+        "color": "#4E342A",
+        "sombra": "#33211A"
+      },
+      {
+        "id": "caoba",
+        "nombre": "Caoba",
+        "color": "#6B3A2E",
+        "sombra": "#48241C"
+      },
+      {
+        "id": "rubio",
+        "nombre": "Rubio sucio",
+        "color": "#C99A45",
+        "sombra": "#A2762C"
+      },
+      {
+        "id": "zanahoria",
+        "nombre": "Pelirrojo",
+        "color": "#B4502A",
+        "sombra": "#8B3818"
+      },
+      {
+        "id": "ceniza",
+        "nombre": "Canoso",
+        "color": "#B3AEA6",
+        "sombra": "#8C8880"
+      },
+      {
+        "id": "nieve",
+        "nombre": "Blanco",
+        "color": "#E4DFD6",
+        "sombra": "#B8B2A8"
+      },
+      {
+        "id": "chicle",
+        "nombre": "Rosa chicle",
+        "color": "#C2588A",
+        "sombra": "#9B3C69"
+      },
+      {
+        "id": "tinta-azul",
+        "nombre": "Azul tinta",
+        "color": "#3D5A9E",
+        "sombra": "#2B4076"
+      },
+      {
+        "id": "verdin",
+        "nombre": "Verde",
+        "color": "#4F7A4A",
+        "sombra": "#375734"
+      }
+    ],
+    "ropa": [
+      {
+        "id": "rojo",
+        "nombre": "Rojo prensa",
+        "color": "#CF3A2B",
+        "secundario": "#F2E9D8"
+      },
+      {
+        "id": "teal",
+        "nombre": "Teal",
+        "color": "#2E6B78",
+        "secundario": "#F2E9D8"
+      },
+      {
+        "id": "mostaza",
+        "nombre": "Mostaza",
+        "color": "#E0A526",
+        "secundario": "#1B1714"
+      },
+      {
+        "id": "morado",
+        "nombre": "Morado",
+        "color": "#6B4A7A",
+        "secundario": "#F2E9D8"
+      },
+      {
+        "id": "verde",
+        "nombre": "Verde",
+        "color": "#4A7A52",
+        "secundario": "#F2E9D8"
+      },
+      {
+        "id": "azul",
+        "nombre": "Azul",
+        "color": "#34518C",
+        "secundario": "#F2E9D8"
+      },
+      {
+        "id": "crema",
+        "nombre": "Crema",
+        "color": "#E8DCC4",
+        "secundario": "#1B1714"
+      },
+      {
+        "id": "grafito",
+        "nombre": "Grafito",
+        "color": "#3A3532",
+        "secundario": "#E8DCC4"
+      }
+    ],
+    "fondo": [
+      {
+        "id": "mostaza",
+        "nombre": "Mostaza",
+        "color": "#E7C86A",
+        "secundario": "#D2A93F"
+      },
+      {
+        "id": "rojo",
+        "nombre": "Rojo",
+        "color": "#D9614E",
+        "secundario": "#BE4533"
+      },
+      {
+        "id": "teal",
+        "nombre": "Teal",
+        "color": "#4E8C99",
+        "secundario": "#33707D"
+      },
+      {
+        "id": "verde",
+        "nombre": "Verde",
+        "color": "#7FA06A",
+        "secundario": "#62854C"
+      },
+      {
+        "id": "morado",
+        "nombre": "Morado",
+        "color": "#8A6E9B",
+        "secundario": "#6E5280"
+      },
+      {
+        "id": "papel",
+        "nombre": "Papel",
+        "color": "#EFE4CE",
+        "secundario": "#D8C8A8"
+      },
+      {
+        "id": "humo",
+        "nombre": "Humo",
+        "color": "#BFB8AC",
+        "secundario": "#A29A8C"
+      },
+      {
+        "id": "noche",
+        "nombre": "Noche",
+        "color": "#3E4A5B",
+        "secundario": "#2A3342"
+      }
+    ]
+  },
+  "expresiones": {
+    "neutral": {
+      "nombre": "Neutral",
+      "slots": {}
+    },
+    "hablando": {
+      "nombre": "Hablando",
+      "slots": {
+        "boca": "abierta"
+      }
+    },
+    "feliz": {
+      "nombre": "Feliz",
+      "slots": {
+        "ojos": "exp-feliz",
+        "boca": "exp-risa"
+      }
+    },
+    "risa": {
+      "nombre": "Carcajada",
+      "slots": {
+        "ojos": "exp-feliz",
+        "boca": "exp-risa",
+        "cejas": "arqueadas",
+        "fondo": "estallido"
+      }
+    },
+    "enfadado": {
+      "nombre": "Enfadado",
+      "slots": {
+        "cejas": "exp-enfadado",
+        "ojos": "exp-enfadado",
+        "boca": "triste"
+      }
+    },
+    "grito": {
+      "nombre": "Grito",
+      "slots": {
+        "cejas": "exp-enfadado",
+        "ojos": "exp-grito",
+        "boca": "exp-grito",
+        "fondo": "estallido"
+      }
+    },
+    "triste": {
+      "nombre": "Triste",
+      "slots": {
+        "cejas": "exp-triste",
+        "ojos": "exp-triste",
+        "boca": "triste"
+      }
+    },
+    "sorpresa": {
+      "nombre": "Sorpresa",
+      "slots": {
+        "cejas": "exp-sorpresa",
+        "ojos": "exp-grito",
+        "boca": "silbido"
+      }
+    },
+    "chulo": {
+      "nombre": "Chulesco",
+      "slots": {
+        "cejas": "asimetricas",
+        "ojos": "exp-chulo",
+        "boca": "mueca"
+      }
+    },
+    "duda": {
+      "nombre": "Duda",
+      "slots": {
+        "cejas": "exp-duda",
+        "ojos": "exp-pensando",
+        "boca": "exp-duda"
+      }
+    },
+    "dormido": {
+      "nombre": "Dormido",
+      "slots": {
+        "ojos": "exp-cerrados",
+        "boca": "silbido",
+        "cejas": "finas"
+      }
+    }
+  },
+  "porDefecto": {
+    "piezas": {
+      "fondo": "trama",
+      "pelo-tras": "nada",
+      "cuerpo": "camisa",
+      "cabeza": "ovalo",
+      "cejas": "rectas",
+      "ojos": "normales",
+      "nariz": "boton",
+      "boca": "sonrisa",
+      "barba": "nada",
+      "pelo": "entradas",
+      "gafas": "nada",
+      "sombrero": "nada",
+      "extra": "nada"
+    },
+    "colores": {
+      "piel": "media",
+      "pelo": "castano",
+      "ropa": "rojo",
+      "fondo": "mostaza"
+    }
+  }
+}
