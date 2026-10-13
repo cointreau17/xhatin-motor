@@ -92,19 +92,27 @@ con Node, que es lo que hacen los tests de Angular con lo que hay en
 Por tag de git, igual que `@diariohilario/portero`:
 
 ```bash
-npm install github:cointreau17/xhatin-motor#v0.1.0
+npm install github:cointreau17/xhatin-motor#v0.12.0
 ```
 
-El repo es privado: donde se instale sin tu clave SSH (el CI de xhatin, EAS
-Build de la app) hará falta un token de GitHub con permiso de lectura.
+El repo es público: se instala en cualquier sitio sin clave ni token, también
+en el CI de xhatin y en EAS Build. Así lo usan xhatin (`remote-angular`) y la
+app (`diario-hilario-mobile`).
 
-Mientras no haya tag, xhatin lo usa desde este checkout:
-`"@diariohilario/xhatin-motor": "file:../../xhatin-motor"` en
-`remote-angular/package.json`. npm lo enlaza y no lo compila, así que después
-de cambiar el motor hay que ejecutar aquí `npm run build` (o dejar
-`npx tsc -p tsconfig.build.json --watch`) y reiniciar el dev server de xhatin,
-que empaqueta al arrancar. Ese `file:` no se puede subir: el CI de xhatin no
-tiene esta carpeta.
+Para publicar un cambio:
+1. Sube la versión en `package.json`: un arreglo cambia el último número y algo
+   nuevo, el del medio.
+2. Haz commit en `main` y crea la etiqueta `vX.Y.Z`, con «v», como portero.
+3. Sube la etiqueta.
+4. En xhatin y en la app, cambia el tag en `package.json` y haz `npm install`.
+
+Para probar un cambio antes de etiquetarlo, un proyecto puede apuntar a este
+checkout un rato: `"file:../../xhatin-motor"` en xhatin (`remote-angular`) o
+`"file:../xhatin-motor"` en la app, cuyo Metro ya vigila la carpeta enlazada.
+npm lo enlaza pero no lo compila: después de cambiar el motor, ejecuta aquí
+`npm run build` (o deja `npx tsc -p tsconfig.build.json --watch`) y reinicia el
+dev server de xhatin, que empaqueta al arrancar. Ese `file:` no se sube:
+fuera de tu ordenador esta carpeta no existe.
 
 `dist/` no se versiona: instalado desde git, el paquete se compila solo
 (script `prepare`).
