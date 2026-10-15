@@ -1,6 +1,6 @@
 {
   "name": "@diariohilario/xhatin-motor",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Motor de Xhatín sin framework: HilarAvatar y el motor de escena (conversación → viñetas). Lo comparten xhatin (web) y diario-hilario-mobile.",
   "private": true,
   "type": "module",

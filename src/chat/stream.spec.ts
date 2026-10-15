@@ -144,6 +144,25 @@ describe('puerto sobre un canal de Stream', () => {
     expect(canal.oyendo('message.new')).toBe(0);
   });
 
+  it('trae la lectura de la IA guardada en el mensaje, si tiene la forma esperada', () => {
+    const lectura = { emocion: 'sarcastico', intensidad: 0.7, globo: 'dialogo', tono: 'comico', intencion: 'desacuerdo' };
+    expect(mensajeDeStream({ id: 'm1', text: 'ya', user: ANA, xhatin_lectura: lectura }).lectura).toEqual(lectura);
+    expect(mensajeDeStream({ id: 'm1', text: 'ya', user: ANA, xhatin_lectura: { emocion: 'feliz' } }).lectura).toBeUndefined();
+    expect('lectura' in mensajeDeStream({ id: 'm1', text: 'ya', user: ANA })).toBe(false);
+  });
+
+  it('avisa de los mensajes que cambian (la lectura que guarda dhcore)', async () => {
+    const canal = new CanalFalso();
+    const puerto = puertoStream(async () => canal);
+    const llegan: MensajeChat[] = [];
+    const baja = puerto.alActualizar!((m) => llegan.push(m));
+    await vaciar();
+    canal.emitir('message.updated', { message: { id: 'm1', text: 'hola', user: ANA } });
+    baja();
+    canal.emitir('message.updated', { message: { id: 'm2', text: 'hola', user: ANA } });
+    expect(llegan.map((m) => m.id)).toEqual(['m1']);
+  });
+
   it('los participantes salen de los miembros del canal', async () => {
     const canal = new CanalFalso();
     canal.state.members = { a: { user: ANA }, b: { user_id: 'u-sin-datos' }, c: {} };

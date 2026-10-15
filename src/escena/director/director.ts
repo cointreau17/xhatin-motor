@@ -34,6 +34,7 @@ import type {
 } from '../modelo.js';
 import { InterpreteReglas, type ContextoInterpretacion, type Interprete, type InterpretacionConDeltas, type Refinador } from '../interpretacion/interprete.js';
 import { MotorReglas, Pizarra } from '../interpretacion/reglas.js';
+import { parcheDeLectura, validarLectura } from '../interpretacion/refinador-remoto.js';
 import { identidadDe } from '../personaje/identidad.js';
 import { POSES_PERSISTENTES, REGLAS_ESCENA, type CtxEscena } from './reglas-escena.js';
 import { alturaGlobos } from '../composicion/globos.js';
@@ -175,6 +176,11 @@ export class Director {
   private secuencia = 0;
   /** Correcciones de los refinadores (IA), por mensaje. Sobreviven a `reconstruir`. */
   private readonly parches = new Map<string, Partial<Interpretacion>>();
+  /**
+   * Mensajes que traían una lectura de la IA guardada y válida: ya están
+   * leídos, no se vuelve a preguntar por ellos (ver `MensajeEntrada.lectura`).
+   */
+  private readonly conLectura = new Set<string>();
 
   constructor(op: OpcionesDirector = {}) {
     this.catalogo = op.catalogo ?? CATALOGO;
@@ -232,7 +238,18 @@ export class Director {
     est.presente = true;
 
     const anterior = this.registros[this.registros.length - 1];
-    const interp = this.interprete.interpretar(m, this.contextoPara(m)) as InterpretacionConDeltas;
+    const ctx = this.contextoPara(m);
+    const interp = this.interprete.interpretar(m, ctx) as InterpretacionConDeltas;
+    // La lectura de la IA guardada con el mensaje cuenta como si el refinador
+    // acabara de contestar: el mismo parche, sin volver a preguntar.
+    if (m.lectura && !this.parches.has(m.id)) {
+      const lectura = validarLectura(m.lectura, this.catalogo.expresiones.listar().map((e) => e.id));
+      if (lectura) {
+        this.conLectura.add(m.id);
+        const parcheGuardado = parcheDeLectura(interp, lectura, ctx);
+        if (parcheGuardado) this.parches.set(m.id, parcheGuardado);
+      }
+    }
     const parche = this.parches.get(m.id);
     if (parche) Object.assign(interp, parche, { traza: [...interp.traza, { regla: 'refinador', propuestas: Object.keys(parche) }] });
     if (interp.destinatarioId && (!e.personajes[interp.destinatarioId]?.presente || interp.destinatarioId === m.autorId)) {
@@ -301,7 +318,8 @@ export class Director {
    */
   async refinar(mensajeId: string): Promise<boolean> {
     const reg = this.registros.find((r) => r.id === mensajeId);
-    if (!reg || !this.refinadores.length) return false;
+    // Con su lectura guardada ya está leído: no se paga otra vez.
+    if (!reg || !this.refinadores.length || this.conLectura.has(mensajeId)) return false;
     let cambio: Partial<Interpretacion> = {};
     for (const r of this.refinadores) {
       try {

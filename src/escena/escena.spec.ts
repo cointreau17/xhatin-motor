@@ -21,7 +21,7 @@ import { aVineta } from './composicion/camara.js';
 import { identidadDe } from './personaje/identidad.js';
 import { dibujarPersonaje } from './personaje/personaje.js';
 import { CONVERSACIONES, REPARTO } from './pruebas/conversaciones.js';
-import type { Interpretacion, MensajeEntrada, Vineta } from './modelo.js';
+import type { Interpretacion, LecturaIA, MensajeEntrada, Vineta } from './modelo.js';
 
 const interprete = new InterpreteReglas();
 
@@ -222,6 +222,37 @@ describe('Refinador remoto (IA)', () => {
     const { f, llamadas } = servicio(200);
     expect((await refinar('😂😂😂', f)).parche).toBeNull();
     expect(llamadas.length).toBe(0);
+  });
+
+  it('manda el id del mensaje: con él, dhcore guarda la lectura en el mensaje', async () => {
+    const { f, llamadas } = servicio(200, {});
+    await refinar('qué bien, otro lunes', f);
+    expect((llamadas[0] as { mensajeId: string }).mensajeId).toBeTruthy();
+  });
+});
+
+describe('Lectura de la IA guardada en el mensaje', () => {
+  const sarcasmo: LecturaIA = { emocion: 'sarcastico', intensidad: 0.7, globo: 'dialogo', tono: 'comico', intencion: 'desacuerdo' };
+
+  it('se dibuja como si el refinador acabara de contestar, sin preguntar', async () => {
+    const preguntas: string[] = [];
+    const refinador = { nombre: 'falso', refinar: async (m: MensajeEntrada) => (preguntas.push(m.id), { emocion: 'enamorado' }) };
+    const d = new Director({ refinadores: [refinador] });
+    const m = msg('qué bien, otro lunes', 'alberto', { lectura: sarcasmo });
+    d.procesar(m);
+    expect(d.interpretacionDe(m.id)?.emocion).toBe('sarcastico');
+    expect(await d.refinar(m.id)).toBe(false);
+    expect(preguntas).toEqual([]);
+    // Y al reconstruir (recargar el historial), lo mismo.
+    d.reconstruir([m]);
+    expect(d.interpretacionDe(m.id)?.emocion).toBe('sarcastico');
+  });
+
+  it('una lectura con caras que el catálogo no tiene se ignora', () => {
+    const d = new Director();
+    const m = msg('qué bien, otro lunes', 'alberto', { lectura: { ...sarcasmo, emocion: 'extasis-cosmico' } });
+    d.procesar(m);
+    expect(d.interpretacionDe(m.id)?.emocion).toBe('feliz');
   });
 });
 

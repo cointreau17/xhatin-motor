@@ -12,6 +12,8 @@
  * el usuario en dos sitios y a mantenerlos de acuerdo.
  */
 
+import type { LecturaIA } from '../escena/modelo.js';
+
 /**
  * Un mensaje que no es texto plano.
  *
@@ -43,6 +45,11 @@ export interface MensajeChat {
   expresion?: string;
   fecha: Date;
   adjuntos?: AdjuntoChat[];
+  /**
+   * La lectura de la IA, si ya se guardó con el mensaje (en Stream,
+   * `xhatin_lectura`). Ver `MensajeEntrada.lectura`.
+   */
+  lectura?: LecturaIA;
 }
 
 /**
@@ -103,6 +110,12 @@ export interface PuertoChat {
   marcarLeido?(): Promise<void>;
   /** Suscribe a los mensajes nuevos. Devuelve la funcion de baja. */
   alRecibir(cb: (mensaje: MensajeChat) => void): () => void;
+  /**
+   * OPCIONAL. Mensajes ya recibidos que cambian: hoy, cuando dhcore guarda su
+   * lectura de la IA, para que quien tiene la conversacion abierta la vea sin
+   * recargar. Sin el, se ve al volver a abrirla.
+   */
+  alActualizar?(cb: (mensaje: MensajeChat) => void): () => void;
   /** Fuera del alcance de la vista de solo lectura, pero parte del contrato. */
   enviar(texto: string): Promise<void>;
   /**

@@ -1,5 +1,33 @@
 # Cambios
 
+## 0.13.0
+
+La lectura de la IA, una vez por mensaje y para todos:
+
+- **La lectura viaja con el mensaje.**
+  - `MensajeEntrada.lectura` y `MensajeChat.lectura` llevan la lectura de la
+    IA (`LecturaIA`: emoción, intensidad, globo, tono e intención) si ya se
+    guardó.
+  - El director la aplica como si el refinador acabara de contestar, el
+    mismo parche, y no vuelve a preguntar por ese mensaje (`refinar` devuelve
+    `false`).
+  - Se valida contra el catálogo (`validarLectura`): una cara que ya no
+    existe se ignora y queda lo de las reglas.
+  - Así la web y la app dibujan igual el mensaje, también al recargar el
+    historial, sin pagar otra vez.
+- **El refinador remoto manda `mensajeId`,** para que el servicio (dhcore,
+  `POST /xhatin/interpretar`) guarde la lectura en el mensaje.
+  `parcheDeLectura` es la conversión de una lectura en cambios de la viñeta,
+  pública para el director.
+- **Mensajes que cambian.**
+  - `PuertoChat.alActualizar` (opcional) avisa de los mensajes ya recibidos
+    que cambian.
+  - En Stream es `message.updated`, y `mensajeDeStream` lee el campo
+    `xhatin_lectura`.
+  - `ControladorComic.actualizar(mensaje)` recompone la tira con la lectura
+    nueva. Lo llama el puerto o, si los mensajes llegan a mano, quien los
+    trae.
+
 ## 0.12.0
 
 El cómic, a lo grande:

@@ -27,6 +27,7 @@ const HISTORIAL = [
 /** Un puerto que maneja el test: el historial llega (o falla) cuando se diga. */
 function puertoManual(historial: MensajeChat[] = HISTORIAL) {
   const oyentes = new Set<(m: MensajeChat) => void>();
+  const actualizados = new Set<(m: MensajeChat) => void>();
   const presencias = new Set<(e: PresenciaChat) => void>();
   const pendientes: Array<{ ok: (m: MensajeChat[]) => void; ko: (e: unknown) => void }> = [];
   const puerto: PuertoChat = {
@@ -34,6 +35,10 @@ function puertoManual(historial: MensajeChat[] = HISTORIAL) {
     alRecibir: (cb) => {
       oyentes.add(cb);
       return () => oyentes.delete(cb);
+    },
+    alActualizar: (cb) => {
+      actualizados.add(cb);
+      return () => actualizados.delete(cb);
     },
     enviar: () => Promise.resolve(),
     alCambiarPresencia: (cb) => {
@@ -47,6 +52,8 @@ function puertoManual(historial: MensajeChat[] = HISTORIAL) {
     cargar: () => pendientes.shift()!.ok(historial),
     fallar: () => pendientes.shift()!.ko(new Error('sin red')),
     recibir: (m: MensajeChat) => oyentes.forEach((o) => o(m)),
+    actualizar: (m: MensajeChat) => actualizados.forEach((o) => o(m)),
+    actualizados,
     presencia: (e: PresenciaChat) => presencias.forEach((o) => o(e)),
   };
 }
@@ -65,6 +72,18 @@ async function conectado(c: ControladorComic, m = puertoManual()) {
 }
 
 describe('ControladorComic', () => {
+  it('cuando dhcore guarda la lectura de la IA en un mensaje, la tira se recompone con ella', async () => {
+    const c = new ControladorComic();
+    const m = await conectado(c);
+    const caras = () => c.estado.tira.flatMap((v) => v.personajes.map((p) => p.expresion));
+    expect(caras()).not.toContain('sarcastico');
+    m.actualizar({ ...HISTORIAL[0]!, lectura: { emocion: 'sarcastico', intensidad: 0.7, globo: 'dialogo', tono: 'comico', intencion: 'desacuerdo' } });
+    expect(caras()).toContain('sarcastico');
+    // Al desconectar deja de escuchar.
+    c.desconectar();
+    expect(m.actualizados.size).toBe(0);
+  });
+
   it('compone el historial como el director y anima la última viñeta entera', async () => {
     const c = new ControladorComic();
     const m = puertoManual();

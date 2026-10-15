@@ -1,3 +1,4 @@
+import type { LecturaIA } from '../escena/modelo.js';
 import type { MensajeChat, ParticipanteChat, PuertoChat } from './puerto-chat.js';
 
 /**
@@ -51,6 +52,8 @@ export interface MensajeStream {
   text?: string;
   created_at?: string | Date;
   user?: UsuarioStream | null;
+  /** La lectura de la IA que guarda dhcore en el mensaje (campo propio). */
+  xhatin_lectura?: unknown;
 }
 
 export interface EventoStream {
@@ -62,6 +65,7 @@ export interface EventoStream {
 
 /** Un mensaje de Stream, en el contrato del cómic. */
 export function mensajeDeStream(m: MensajeStream): MensajeChat {
+  const lectura = lecturaDe(m.xhatin_lectura);
   return {
     id: m.id ?? '',
     texto: m.text ?? '',
@@ -72,7 +76,19 @@ export function mensajeDeStream(m: MensajeStream): MensajeChat {
     // respaldo, que es determinista por autor.
     avatar: m.user?.avatar ?? null,
     fecha: m.created_at ? new Date(m.created_at) : new Date(),
+    ...(lectura ? { lectura } : {}),
   };
+}
+
+/**
+ * La lectura de la IA guardada en un mensaje, si tiene la forma esperada. Que
+ * sus valores existan en el catálogo lo comprueba el director al usarla.
+ */
+function lecturaDe(x: unknown): LecturaIA | undefined {
+  if (!x || typeof x !== 'object') return undefined;
+  const l = x as Record<string, unknown>;
+  const textos = ['emocion', 'globo', 'tono', 'intencion'].every((k) => typeof l[k] === 'string');
+  return textos && typeof l['intensidad'] === 'number' ? (l as unknown as LecturaIA) : undefined;
 }
 
 /**
@@ -133,6 +149,28 @@ export function puertoStream(canal: () => CanalStream | Promise<CanalStream>): P
           baja = () => unsubscribe();
         })
         // El fallo lo cuenta `historial()`, que va por el mismo canal.
+        .catch(() => undefined);
+
+      return () => {
+        cancelado = true;
+        baja?.();
+      };
+    },
+
+    // Como `alRecibir`: los mensajes que cambian (dhcore les guarda la lectura
+    // de la IA después de enviarlos).
+    alActualizar: (cb) => {
+      let baja: (() => void) | null = null;
+      let cancelado = false;
+
+      vigilado()
+        .then((c) => {
+          if (cancelado) return;
+          const { unsubscribe } = c.on('message.updated', (evento) => {
+            if (evento.message) cb(mensajeDeStream(evento.message));
+          });
+          baja = () => unsubscribe();
+        })
         .catch(() => undefined);
 
       return () => {

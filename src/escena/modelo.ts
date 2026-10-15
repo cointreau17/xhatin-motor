@@ -302,6 +302,28 @@ export interface MensajeEntrada {
   /** Expresión elegida a mano (anula la deducida). */
   expresion?: string;
   adjuntos?: AdjuntoEntrada[];
+  /**
+   * La lectura de la IA, guardada con el mensaje la primera vez que se pidió
+   * (en Stream, el campo `xhatin_lectura`, que escribe dhcore). Con ella el
+   * director dibuja lo mismo que si el refinador acabara de contestar, sin
+   * volver a preguntar: todos ven igual el mensaje, también al recargar. Se
+   * valida contra el catálogo antes de usarla.
+   */
+  lectura?: LecturaIA;
+}
+
+/**
+ * Lo que la IA lee en un mensaje: la cara, cuánto, el bocadillo, el tono y la
+ * intención. Valores del catálogo y del vocabulario del motor, nada de texto
+ * libre. Ver interpretacion/refinador-remoto.ts.
+ */
+export interface LecturaIA {
+  emocion: Id;
+  /** 0–1. */
+  intensidad: number;
+  globo: TipoGlobo;
+  tono: Tono;
+  intencion: Intencion;
 }
 
 /** Alguien entra o sale de la conversación (si el puerto lo sabe). */

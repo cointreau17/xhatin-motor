@@ -123,6 +123,7 @@ export class ControladorComic {
   private baja: (() => void) | null = null;
   private bajaPresencia: (() => void) | null = null;
   private bajaEscritura: (() => void) | null = null;
+  private bajaActualizados: (() => void) | null = null;
   /** Quién escribe, con su caducidad. */
   private readonly escritura = new Escribiendo(() => {
     this.poner({ escribiendo: this.escritura.lista });
@@ -213,6 +214,11 @@ export class ControladorComic {
       puerto.alEscribir?.((evento) => {
         if (conexion === this.conexion) this.escribe(evento);
       }) ?? null;
+    // Opcional: la lectura de la IA que dhcore guarda en un mensaje ya enviado.
+    this.bajaActualizados =
+      puerto.alActualizar?.((mensaje) => {
+        if (conexion === this.conexion) this.actualizar(mensaje);
+      }) ?? null;
 
     try {
       const historial = await puerto.historial(limite);
@@ -240,7 +246,25 @@ export class ControladorComic {
     this.bajaPresencia = null;
     this.bajaEscritura?.();
     this.bajaEscritura = null;
+    this.bajaActualizados?.();
+    this.bajaActualizados = null;
     this.olvidarEscritura();
+  }
+
+  /**
+   * Un mensaje que ya estaba ha cambiado: hoy, que dhcore le ha guardado la
+   * lectura de la IA. Se recompone con ella, como cuando contesta el
+   * refinador. Lo llama el puerto (`alActualizar`) o, si los mensajes llegan a
+   * mano (la app), quien los trae. Si no trae lectura nueva, no hace nada.
+   */
+  actualizar(mensaje: MensajeChat): void {
+    const i = this.mensajesEscena.findIndex((m) => m.id === mensaje.id);
+    const antes = this.mensajesEscena[i];
+    if (!antes || !mensaje.lectura || JSON.stringify(antes.lectura) === JSON.stringify(mensaje.lectura)) return;
+    this.mensajesEscena[i] = { ...antes, lectura: mensaje.lectura };
+    this.director.reconstruir(this.mensajesEscena);
+    this.publicar(null);
+    this.emitir();
   }
 
   /**

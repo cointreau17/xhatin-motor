@@ -11,7 +11,7 @@
  * así que vale igual en el remote, en el laboratorio o en un test.
  */
 
-import type { Intencion, Interpretacion, MensajeEntrada, TipoGlobo, Tono } from '../modelo.js';
+import type { Intencion, Interpretacion, LecturaIA, MensajeEntrada, TipoGlobo, Tono } from '../modelo.js';
 import type { ContextoInterpretacion, Refinador } from './interprete.js';
 
 /** Los valores que puede devolver el servicio, además de las expresiones del catálogo. */
@@ -26,7 +26,11 @@ export const INTENCIONES: readonly Intencion[] = [
 const UMBRAL_INTENSIDAD = 0.2;
 
 export interface OpcionesRefinadorRemoto {
-  /** Endpoint que recibe `{ texto, anterior, reglas, opciones }`. */
+  /**
+   * Endpoint que recibe `{ mensajeId, texto, anterior, reglas, opciones }`.
+   * Con `mensajeId`, dhcore guarda la lectura en el mensaje (si lo pide su
+   * autor) y desde entonces viaja con él: ver `MensajeEntrada.lectura`.
+   */
   url: string;
   /** Cabeceras de cada petición (p. ej. el token). Se piden en cada llamada: el token caduca. */
   cabeceras?: () => Promise<Record<string, string>>;
@@ -34,14 +38,6 @@ export interface OpcionesRefinadorRemoto {
   tiempoMax?: number;
   /** Para los tests. Por defecto, el `fetch` global. */
   fetch?: typeof fetch;
-}
-
-interface Lectura {
-  emocion: string;
-  intensidad: number;
-  globo: TipoGlobo;
-  tono: Tono;
-  intencion: Intencion;
 }
 
 export function refinadorRemoto(op: OpcionesRefinadorRemoto): Refinador {
@@ -58,6 +54,7 @@ export function refinadorRemoto(op: OpcionesRefinadorRemoto): Refinador {
 
       const emociones = ctx.catalogo.expresiones.listar().map((e) => e.id);
       const cuerpo = {
+        mensajeId: mensaje.id,
         texto: mensaje.texto,
         anterior: ctx.anterior?.texto,
         reglas: { emocion: base.emocion, intensidad: base.intensidad, globo: base.globo, tono: base.tono, intencion: base.intencion },
@@ -84,14 +81,18 @@ export function refinadorRemoto(op: OpcionesRefinadorRemoto): Refinador {
       }
       if (!respuesta.ok) return null;
 
-      const lectura = validar(await respuesta.json(), emociones);
-      return lectura ? cambios(base, lectura, ctx) : null;
+      const lectura = validarLectura(await respuesta.json(), emociones);
+      return lectura ? parcheDeLectura(base, lectura, ctx) : null;
     },
   };
 }
 
-/** Lo que llega de fuera no se usa sin mirar: solo valores que se saben dibujar. */
-function validar(datos: unknown, emociones: readonly string[]): Lectura | null {
+/**
+ * Lo que llega de fuera no se usa sin mirar: solo valores que se saben
+ * dibujar. Vale para la respuesta del servicio y para la lectura guardada en
+ * un mensaje, que puede venir de otra versión del catálogo.
+ */
+export function validarLectura(datos: unknown, emociones: readonly string[]): LecturaIA | null {
   if (!datos || typeof datos !== 'object') return null;
   const d = datos as Record<string, unknown>;
   const de = <T extends string>(v: unknown, lista: readonly T[]) => (typeof v === 'string' && lista.includes(v as T) ? (v as T) : null);
@@ -113,7 +114,7 @@ function validar(datos: unknown, emociones: readonly string[]): Lectura | null {
  * acompañan a ese cambio, pero por sí solos no mueven nada en el dibujo, y
  * un matiz de intensidad tampoco.
  */
-function cambios(base: Interpretacion, l: Lectura, ctx: ContextoInterpretacion): Partial<Interpretacion> | null {
+export function parcheDeLectura(base: Interpretacion, l: LecturaIA, ctx: ContextoInterpretacion): Partial<Interpretacion> | null {
   const otraCara = l.emocion !== base.emocion;
   const otroGlobo = l.globo !== base.globo;
   const otraIntensidad = Math.abs(l.intensidad - base.intensidad) >= UMBRAL_INTENSIDAD;
